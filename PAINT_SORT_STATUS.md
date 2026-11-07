@@ -1,4 +1,4 @@
-# Paint Magic Sort — Implementation Status
+# Palette Pour — Implementation Status
 
 ## How to run
 1. Open the project in Unity 6000.6, open `Assets/Scenes/SampleScene`, press **Play**. The whole game builds itself from code (`App.Boot`).
@@ -60,3 +60,6 @@ The ChatGPT art is wired in: pots, glossy buttons and panels, icons, colour-blin
 - Each cloth-covered pot shows a full bottle of the colour that uncovers it; only finishing THAT colour opens it (`PuzzleState.Pot.CoverColor`). Keys are derived from each level's verified solution (`LevelCovers.Assign`), so the key colour can always be completed outside the covered pot; the audit and a test check that no covered pot holds its own key (5,000 levels pass).
 - From level 5 every start / retry / restart gets the same layout with different paint colours (`LevelVariant`): colours are relabelled and same-shaped uncovered pots swap contents, so it is the same audited puzzle in disguise. Tutorials 1-4 and resumed boards are unchanged.
 - Art: glass smudges flattened and burlap speckles removed (`process_art.py`); the cloth is scaled slightly larger than the glass so nothing shows through.
+
+## Name change (Palette Pour)
+"Paint Magic Sort" was dropped: MAGIC SORT is a registered trademark (Grand Games) for the same kind of game. The game is now **Palette Pour**; Google Play title **"Palette Pour: Sort Puzzle"**; package `com.misalinteractive.palettepour`. Product name and package are set in `ProjectSetup` (menu: Paint Sort > Apply Player Settings). The old logo and the text-bearing store images (TV banner, feature graphic, splash) are parked in `ArtSource/old_name/`; the menu shows a code-drawn "PALETTE / POUR" wordmark until the new `Resources/Art/logo.png` is added (prompts: the art-prompt page). Not yet cleared: run a USPTO / store search on the final name, ideally with a trademark attorney.

@@ -11,13 +11,13 @@ namespace PaintSort.EditorTools
     public static class ProjectSetup
     {
         public const string Company = "Misal Interactive";
-        public const string Product = "Paint Magic Sort";
+        public const string Product = "Palette Pour";
 
         /// <summary>
         /// Android package name. Reverse-domain style; <b>cannot be changed after the app is published on Google Play</b>, so settle it first.
         /// Lowercase letters and digits only in each segment.
         /// </summary>
-        public const string AndroidPackage = "com.misalinteractive.paintmagicsort";
+        public const string AndroidPackage = "com.misalinteractive.palettepour";
 
         [MenuItem("Paint Sort/Apply Player Settings")]
         public static void Apply()

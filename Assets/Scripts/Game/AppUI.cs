@@ -163,8 +163,8 @@ namespace PaintSort.Game
             menuHero.sizeDelta = new Vector2(MenuDesignWidth, MenuHeroHeight); menuActions.sizeDelta = new Vector2(MenuDesignWidth, MenuActionsHeight);
 
             var top = new Vector2(0.5f, 1f);
-            // placeholder wordmark (replaced by Resources/Art/logo.png when it exists): "PAINT" big, "MAGIC SORT" smaller underneath
-            var logo = UI.Txt(menuHero, "<color=#E84C5B>P</color><color=#399CE0>A</color><color=#F5CE45>I</color><color=#54C99B>N</color><color=#9867D5>T</color>\n<size=100><color=#F58D67>M</color><color=#E88DC3>A</color><color=#35C6C5>G</color><color=#B5A1E8>I</color><color=#E84C5B>C</color> <color=#399CE0>S</color><color=#F5CE45>O</color><color=#54C99B>R</color><color=#9867D5>T</color></size>", 190, Color.white);
+            // placeholder wordmark (replaced by Resources/Art/logo.png when it exists): "PALETTE" big, "POUR" smaller underneath
+            var logo = UI.Txt(menuHero, "<color=#E84C5B>P</color><color=#399CE0>A</color><color=#F5CE45>L</color><color=#54C99B>E</color><color=#9867D5>T</color><color=#F58D67>T</color><color=#E88DC3>E</color>\n<size=130><color=#E84C5B>P</color><color=#399CE0>O</color><color=#F5CE45>U</color><color=#54C99B>R</color></size>", 190, Color.white);
             logo.supportRichText = true; logo.lineSpacing = 0.9f;
             UI.Place(logo.rectTransform, top, top, new Vector2(0, -40), new Vector2(1000, 420));
             var logoSprite = Resources.Load<Sprite>("Art/logo");

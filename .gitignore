@@ -115,3 +115,4 @@ InitTestScene*.unity*
 
 # Raw AI-generated originals (large); the processed game art and the script that makes it are tracked
 /ArtSource/ChatGPT/
+/ArtSource/old_name/

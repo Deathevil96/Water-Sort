@@ -100,8 +100,8 @@ namespace PaintSort.EditorTools
         {
             switch (target)
             {
-                case BuildTarget.Android: return Path.Combine(OutputDir, bundle ? "PaintMagicSort.aab" : "PaintMagicSort.apk");
-                case BuildTarget.StandaloneWindows64: return Path.Combine(OutputDir, "Windows", "PaintMagicSort.exe");
+                case BuildTarget.Android: return Path.Combine(OutputDir, bundle ? "PalettePour.aab" : "PalettePour.apk");
+                case BuildTarget.StandaloneWindows64: return Path.Combine(OutputDir, "Windows", "PalettePour.exe");
                 default: return Path.Combine(OutputDir, target.ToString());
             }
         }

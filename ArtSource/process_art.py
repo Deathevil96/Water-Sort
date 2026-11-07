@@ -217,7 +217,12 @@ slice_grid('icon_grid', 4, 4, ['coin', 'heart', 'star', 'check', 'plus', 'lock',
 slice_grid('symbol_grid', 4, 3, ['symbol_%d' % n for n in range(11)] + [None], 192, 0.82)
 
 # ---------------------------------------------------------------- 5. brand and backdrops
-logo = trim(opn('PAINT MAGIC SORT Logo'), 4); save(logo.resize((1000, round(1000 * logo.height / logo.width)), Image.LANCZOS), ART, 'logo.png')
+def maybe(sub):
+    try: return find(sub)
+    except AssertionError: return None
+_logo = maybe('Palette Pour Logo')          # the old PAINT MAGIC SORT picture is retired (trademark); the game draws a code wordmark until this exists
+if _logo:
+    logo = trim(Image.open(_logo).convert('RGBA'), 4); save(logo.resize((1000, round(1000 * logo.height / logo.width)), Image.LANCZOS), ART, 'logo.png')
 bd = Image.open(find('Pastel Art Studio Shelf')).convert('RGB'); save(bd, ART, 'backdrop.png')
 bw = Image.open(find('studio_landscape')).convert('RGB'); save(bw, ART, 'backdrop_wide.png')
 
@@ -232,7 +237,10 @@ icon = gradient(1024).convert('RGBA'); j = jar.copy(); j.thumbnail((760, 760)); 
 save(icon.convert('RGB'), STORE, 'app_icon.png')
 fg = Image.new('RGBA', (432, 432), (0, 0, 0, 0)); j2 = jar.copy(); j2.thumbnail((250, 250)); fg.paste(j2, ((432 - j2.width) // 2, (432 - j2.height) // 2), j2)
 save(fg, STORE, 'icon_foreground.png'); save(gradient(432).convert('RGB'), STORE, 'icon_background.png')
-shutil.copy(find('banner_320x180'), os.path.join(STORE, 'tv_banner.png'))
-shutil.copy(find('store_banner_1024x500'), os.path.join(STORE, 'feature_graphic.png'))
-shutil.copy(find('splash_screen_1080x1920'), os.path.join(STORE, 'splash.png'))
+_f = maybe('Palette Pour tv banner')
+if _f: shutil.copy(_f, os.path.join(STORE, 'tv_banner.png'))   # store art carrying the title: re-add after regenerating with the new name
+_f = maybe('Palette Pour feature graphic')
+if _f: shutil.copy(_f, os.path.join(STORE, 'feature_graphic.png'))   # store art carrying the title: re-add after regenerating with the new name
+_f = maybe('Palette Pour splash')
+if _f: shutil.copy(_f, os.path.join(STORE, 'splash.png'))   # store art carrying the title: re-add after regenerating with the new name
 print('done')
