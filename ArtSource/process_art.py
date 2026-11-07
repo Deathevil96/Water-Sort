@@ -121,12 +121,17 @@ def clean_glass(im, solid_full):
     cleaned.alpha_composite(white)
     out = im.copy()
     out.paste(cleaned, (0, 0), body)                         # body replaced, rim untouched
+    # the see-through oval inside the rim is murky grey in the picture: make it the same faint clear tint as the body
+    hole = ImageChops.multiply(ImageChops.multiply(inside, al.point(lambda v: 255 if v < 150 else 0)), ImageChops.invert(body))
+    hole = hole.filter(ImageFilter.GaussianBlur(1))
+    clear = Image.new('RGBA', (w, h), (236, 232, 255, 30))
+    out = Image.composite(clear, out, hole)
     return out
 pot = cropped(clean_glass(pot_raw, solid_full))
 save(pot, ART, 'pot.png')
 RIM_CUT = 452 - crop[1]                                                         # below the opaque rim band; the rim hides anything above
 mask_hi = Image.new('L', solid.size, 0); mask_hi.paste(solid.crop((0, RIM_CUT, solid.width, solid.height)), (0, RIM_CUT))
-mask_hi = mask_hi.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.GaussianBlur(1.2))   # erode a few px so paint never pokes past the outline
+mask_hi = mask_hi.filter(ImageFilter.MinFilter(7)).filter(ImageFilter.GaussianBlur(1.0))   # erode a little so paint never pokes past the outline
 mask = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); mask.putalpha(mask_hi)
 save(mask.resize((OUT_W, OUT_H), Image.LANCZOS), ART, 'pot_mask.png')
 back = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); back.putalpha(mask_hi.point(lambda v: int(v * 0.04)))

@@ -74,7 +74,7 @@ namespace PaintSort.Game
         /// <summary>Measured from the supplied cup artwork (ArtSource/pot_geometry.json): frame 280 x 326.</summary>
         public static readonly PotGeometry ArtworkPot = new PotGeometry
         {
-            W = 280f, H = 326.2f, InnerBottom = 16f, FillHeight = 237f, LipX = 118f, LipY = 131f, DstTopY = 157f,
+            W = 280f, H = 326.2f, InnerBottom = 9f, FillHeight = 244f, LipX = 118f, LipY = 131f, DstTopY = 157f,
             ShadowY = -172f, ShadowW = 330f, ShadowH = 70f, SlotWidth = 0.98f, GlossX = -50f,
             Corners = new[] { new Vector2(-72, -147), new Vector2(72, -147), new Vector2(-108, 90), new Vector2(108, 90) },
         };

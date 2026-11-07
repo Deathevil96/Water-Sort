@@ -63,7 +63,7 @@ namespace PaintSort.Game
             t.font = Art.GameFont; t.fontStyle = Art.CustomFont ? FontStyle.Normal : FontStyle.Bold; t.text = Loc.T(text); t.fontSize = size; t.color = col; t.alignment = anchor;
             t.horizontalOverflow = HorizontalWrapMode.Overflow; t.verticalOverflow = VerticalWrapMode.Overflow; t.raycastTarget = false;
             t.resizeTextForBestFit = false;
-            if (outline) { var o = r.gameObject.AddComponent<Outline>(); o.effectColor = Ink; o.effectDistance = new Vector2(Mathf.Max(2, size / 14f), -Mathf.Max(2, size / 14f)); o.useGraphicAlpha = true; }
+            if (outline) { var o = r.gameObject.AddComponent<Outline8>(); o.effectColor = Ink; o.effectDistance = new Vector2(Mathf.Max(2, size / 15f), Mathf.Max(2, size / 15f)); o.useGraphicAlpha = true; }
             Stretch(r);
             return t;
         }
@@ -85,12 +85,12 @@ namespace PaintSort.Game
         {
             var ring = Img(root, "Focus", Art.Round, FocusRing, true); Stretch(ring.rectTransform, -14, -14, -14, -14); ring.gameObject.SetActive(false);   // shown while focused by keyboard / gamepad / D-pad
             var sh = Img(root, "Shadow", Art.RoundSoft, new Color(0.15f, 0.05f, 0.25f, 0.45f), true); Stretch(sh.rectTransform, -4, -16, -4, 6);
-            float e = Mathf.Max(4f, Mathf.Min(size.y, size.x) * 0.06f);                                  // edge thickness scales with the button
+            float e = Mathf.Max(3f, Mathf.Min(size.y, size.x) * 0.04f);                                  // edge thickness scales with the button
             gold = Img(root, "Outline", Art.Round, GoldEdge, true, true); Stretch(gold.rectTransform);
             var rim = Img(root, "Rim", Art.Round, Color.Lerp(face, Color.black, 0.55f), true); Stretch(rim.rectTransform, e, e * 0.9f, e, e);
-            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, e * 1.7f, e * 1.8f, e * 1.7f, e * 1.7f);
-            var top = Img(root, "Top", Art.Round, new Color(1, 1, 1, 0.26f), true); Stretch(top.rectTransform, e * 2.1f, size.y * 0.5f, e * 2.1f, e * 2.1f);
-            var glint = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.45f), true); Stretch(glint.rectTransform, size.x * 0.14f, size.y * 0.76f, size.x * 0.14f, e * 2.6f);
+            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, e * 1.8f, e * 1.9f, e * 1.8f, e * 1.8f);
+            var top = Img(root, "Top", Art.Round, new Color(1, 1, 1, 0.13f), true); Stretch(top.rectTransform, e * 2.2f, size.y * 0.46f, e * 2.2f, e * 2.2f);
+            var glint = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.32f), true); Stretch(glint.rectTransform, size.x * 0.2f, size.y * 0.8f, size.x * 0.2f, e * 2.8f);
             return ring;
         }
 
@@ -183,6 +183,33 @@ namespace PaintSort.Game
         public static Image Dim(Transform parent, float alpha = 0.55f)
         {
             var d = Img(parent, "Dim", Art.White, new Color(Ink.r, Ink.g, Ink.b, alpha), false, true); Stretch(d.rectTransform); d.preserveAspect = false; return d;
+        }
+    }
+
+    /// <summary>
+    /// Smooth text outline: the standard Outline only copies the text to the four corners, which leaves jagged notches on big letters.
+    /// This draws eight copies (corners and sides), so thick outlines look round and clean. Same API as Outline (effectColor / effectDistance).
+    /// </summary>
+    public sealed class Outline8 : Outline
+    {
+        static readonly Vector2[] Dirs = { new Vector2(1, 0), new Vector2(-1, 0), new Vector2(0, 1), new Vector2(0, -1), new Vector2(0.7071f, 0.7071f), new Vector2(-0.7071f, 0.7071f), new Vector2(0.7071f, -0.7071f), new Vector2(-0.7071f, -0.7071f) };
+        static readonly List<UIVertex> Buffer = new List<UIVertex>(512);
+
+        public override void ModifyMesh(VertexHelper vh)
+        {
+            if (!IsActive()) return;
+            Buffer.Clear(); vh.GetUIVertexStream(Buffer);
+            int n = Buffer.Count; if (n == 0) return;
+            var all = new List<UIVertex>(n * 9);
+            float d = Mathf.Abs(effectDistance.x);
+            for (int k = 0; k < Dirs.Length; k++)
+                for (int i = 0; i < n; i++)
+                {
+                    var v = Buffer[i]; v.position += new Vector3(Dirs[k].x * d, Dirs[k].y * d, 0);
+                    var c = effectColor; if (useGraphicAlpha) c.a = (byte)(c.a * v.color.a / 255); v.color = c; all.Add(v);
+                }
+            for (int i = 0; i < n; i++) all.Add(Buffer[i]);
+            vh.Clear(); vh.AddUIVertexTriangleStream(all);
         }
     }
 

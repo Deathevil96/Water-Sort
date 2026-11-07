@@ -144,10 +144,10 @@ TextureImporter:
       name: pot_mask_0
       rect:
         serializedVersion: 2
-        x: 55
-        y: 11
-        width: 482
-        height: 536
+        x: 54
+        y: 10
+        width: 485
+        height: 537
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
