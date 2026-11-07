@@ -1,0 +1,9 @@
+{
+  "name": "PaintSort.Editor",
+  "rootNamespace": "PaintSort.EditorTools",
+  "references": ["PaintSort.Core"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

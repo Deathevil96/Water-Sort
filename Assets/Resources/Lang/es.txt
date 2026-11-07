@@ -1,0 +1,100 @@
+# Spanish translations. Format: English text <TAB> Spanish text. Keys must match the English strings in code exactly.
+# --- menu / hud
+PLAY	JUGAR
+Levels	Niveles
+Daily	Diario
+Awards	Logros
+Ranks	Ranking
+Shop	Tienda
+Undo	Deshacer
+Shuffle	Mezclar
++ Pot	+ Bote
+Restart	Reiniciar
+Level {0}	Nivel {0}
+Moves {0}	Jugadas {0}
+Continue  -  Level {0}	Continuar  -  Nivel {0}
+{0} / {1} levels painted	{0} / {1} niveles pintados
+Normal	Normal
+Hard	Difícil
+Super Hard	Súper difícil
+# --- popup titles
+Settings	Ajustes
+Gold Shop	Tienda de oro
+Daily Rewards	Recompensas diarias
+Achievements	Logros
+Leaderboard	Clasificación
+Not enough Gold	No tienes suficiente oro
+Out of lives!	¡Sin vidas!
+No more moves!	¡No hay más movimientos!
+Leave this level?	¿Salir de este nivel?
+Leave level?	¿Salir del nivel?
+Restart level?	¿Reiniciar el nivel?
+Add One Empty Container	Añadir un bote vacío
+Reset everything?	¿Borrarlo todo?
+Really erase?	¿Seguro que quieres borrar?
+# --- buttons
+Cancel	Cancelar
+Confirm	Confirmar
+Keep Playing	Seguir jugando
+Leave Level	Salir del nivel
+Stay	Quedarme
+Leave	Salir
+Menu	Menú
+Next Level	Siguiente nivel
+Done	Hecho
+OK	Aceptar
+Not now	Ahora no
+Get Gold	Conseguir oro
+Reset Progress	Borrar progreso
+Privacy	Privacidad
+Restore Buys	Restaurar compras
+ON	SÍ
+OFF	NO
+Soon	Pronto
+Erase	Borrar
+Erase now	Borrar ya
+Keep it	Conservar
+Current	Actual
+Undo (free)	Deshacer (gratis)
+Watch Ad: 2x Gold	Ver anuncio: oro x2
+Doubled!	¡Doblado!
+All claimed!	¡Todo reclamado!
+Come back tomorrow	Vuelve mañana
+# --- settings
+Music	Música
+Sound effects	Efectos de sonido
+Haptics	Vibración
+Colour-blind symbols	Símbolos para daltonismo
+Reduced motion	Menos movimiento
+Language changes fully the next time you open the game.	El idioma se aplica por completo la próxima vez que abras el juego.
+# --- messages
+Select the containers to shuffle.	Elige los botes que quieres mezclar.
+This attempt will use 1 life.	Este intento costará 1 vida.
+The board goes back to the start. This does not cost a life.	El tablero vuelve al inicio. No cuesta una vida.
+Your board is saved, so you can continue it from the menu. No life is lost.	Tu tablero está guardado y puedes continuarlo desde el menú. No pierdes ninguna vida.
+The board is stuck. Pick a helper to keep painting.	El tablero está bloqueado. Elige una ayuda para seguir pintando.
+Already painted before — no new reward.	Ya lo pintaste antes: sin recompensa nueva.
+Claim all 5 rewards this week for a big bonus. Missed a day? You have 2 spare days!	Reclama las 5 recompensas de la semana y llévate un gran bonus. ¿Te saltaste un día? ¡Tienes 2 días de margen!
+Adds a spare empty paint pot until this level ends.	Añade un bote de pintura vacío hasta que termine este nivel.
+Prices come from the store catalogue.	Los precios vienen del catálogo de la tienda.
+Coming soon! Real-money purchases are switched off until store billing is set up.	¡Pronto! Las compras con dinero real están desactivadas hasta configurar la facturación.
+Nothing to undo yet.	Aún no hay nada que deshacer.
+Covered! Finish a colour to uncover it.	¡Tapado! Completa un color para destaparlo.
+Need at least two containers with paint to shuffle.	Necesitas al menos dos botes con pintura para mezclar.
+Select at least two containers.	Elige al menos dos botes.
+Not enough Gold.	No tienes suficiente oro.
+That's the maximum number of extra containers.	Ese es el máximo de botes extra.
+Welcome back! Your board was saved.	¡Bienvenido de nuevo! Tu tablero estaba guardado.
+Already claimed today. Come back tomorrow!	Ya reclamaste hoy. ¡Vuelve mañana!
+Progress reset.	Progreso borrado.
++1 life!	¡+1 vida!
+# --- tutorial hints
+Tap a pot to pick it up, then tap an empty pot to pour your paint into it!	Toca un bote para cogerlo y luego toca un bote vacío para verter tu pintura.
+You can pour onto the same colour, or into an empty pot. Sort every colour into its own pot.	Puedes verter sobre el mismo color o en un bote vacío. Ordena cada color en su propio bote.
+All the matching colours on top move together in one pour.	Todos los colores iguales de arriba se mueven juntos en un solo vertido.
+Each pot holds 4 layers. If it can't fit everything, only part of it pours.	Cada bote tiene 4 capas. Si no cabe todo, solo se vierte una parte.
+This is a Hard level (orange badge) — take your time. Undo is free!	Este es un nivel difícil (insignia naranja): tómate tu tiempo. ¡Deshacer es gratis!
+Dark ? layers hide a secret colour. Pour away what's on top to reveal it!	Las capas oscuras con ? esconden un color secreto. ¡Vierte lo de arriba para revelarlo!
+Cloth-covered pots can't be used yet. Complete one colour to uncover one!	Los botes tapados con tela aún no se pueden usar. ¡Completa un color para destapar uno!
+You unlocked the Leaderboard! Find it on the main menu.	¡Has desbloqueado la clasificación! Búscala en el menú principal.
+Undo rewinds your last pour — it's free, use it as much as you like!	Deshacer revierte tu último vertido: es gratis, ¡úsalo cuanto quieras!
