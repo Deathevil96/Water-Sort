@@ -256,12 +256,25 @@ namespace PaintSort.Tests
             if (onlyUnder != null && !target.IsChildOf(onlyUnder)) return;
             var es = EventSystem.current;
             var rt = (RectTransform)target;
+            ScrollIntoView(rt);                                                          // a button inside a scroll list is only reachable once scrolled to
             var centre = (Vector2)rt.TransformPoint(rt.rect.center);                      // overlay canvas: world position == screen pixels
             if (centre.x < 0 || centre.y < 0 || centre.x > Screen.width || centre.y > Screen.height) { problems.AppendLine(label + " is off screen at " + centre); return; }
             hits.Clear(); es.RaycastAll(new PointerEventData(es) { position = centre }, hits);
             var top = hits.Count > 0 ? hits[0].gameObject : null;
             if (top == null || !top.transform.IsChildOf(target))
                 problems.AppendLine(label + " at " + centre + " is covered by " + (top != null ? PathOf(top.transform) : "nothing (no raycast target)"));
+        }
+
+        /// <summary>Scrolls the enclosing vertical scroll list (if any) so the target sits in the middle of its viewport.</summary>
+        static void ScrollIntoView(RectTransform target)
+        {
+            var sr = target.GetComponentInParent<ScrollRect>();
+            if (sr == null || sr.content == null || sr.viewport == null) return;
+            Canvas.ForceUpdateCanvases();
+            float itemY = -sr.content.InverseTransformPoint(target.TransformPoint(target.rect.center)).y;      // distance below the top of the content
+            float max = Mathf.Max(0f, sr.content.rect.height - sr.viewport.rect.height);
+            sr.content.anchoredPosition = new Vector2(sr.content.anchoredPosition.x, Mathf.Clamp(itemY - sr.viewport.rect.height * 0.5f, 0f, max));
+            Canvas.ForceUpdateCanvases();
         }
 
         /// <summary>Casts a pointer ray through the real event system at the centre of every active button (and pot) and reports whatever is on top instead.</summary>

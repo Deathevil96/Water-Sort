@@ -126,6 +126,10 @@ def clean_glass(im, solid_full):
     hole = hole.filter(ImageFilter.GaussianBlur(1))
     clear = Image.new('RGBA', (w, h), (236, 232, 255, 30))
     out = Image.composite(clear, out, hole)
+    # everything outside the outline is fully transparent AND carries the outline colour: the supplied picture had near-invisible dark grey pixels there,
+    # which texture compression / filtering turned into dark bands beside the glass
+    outside = ImageChops.invert(solid_full.filter(ImageFilter.MaxFilter(11)))
+    out = Image.composite(Image.new('RGBA', (w, h), (59, 23, 72, 0)), out, outside)
     return out
 pot = cropped(clean_glass(pot_raw, solid_full))
 save(pot, ART, 'pot.png')

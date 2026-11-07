@@ -94,6 +94,17 @@ namespace PaintSort.Game
             return ring;
         }
 
+        /// <summary>A glossy banner with a label that is NOT a button (section headers): same look, no tap target.</summary>
+        public static RectTransform Banner(Transform parent, string label, Color face, Vector2 size, int fontSize = 46)
+        {
+            var root = Rect(parent, "Banner_" + label); root.sizeDelta = size;
+            GlossLayers(root, face, size, out var gold);
+            foreach (var g in root.GetComponentsInChildren<Graphic>(true)) g.raycastTarget = false;
+            var t = Txt(root, label, fontSize, Color.white); t.rectTransform.offsetMin = new Vector2(8, 4);
+            var ol = t.GetComponent<Outline>(); if (ol != null) ol.effectColor = Color.Lerp(face, Color.black, 0.65f);
+            return root;
+        }
+
         public static Button Btn(Transform parent, string label, Color face, Vector2 size, Action onClick, Sprite icon = null, int fontSize = 44)
         {
             var root = Rect(parent, "Btn_" + label); root.sizeDelta = size;

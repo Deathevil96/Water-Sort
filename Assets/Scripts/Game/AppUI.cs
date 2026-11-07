@@ -294,8 +294,17 @@ namespace PaintSort.Game
         {
             if (goldText == null) return;
             goldText.text = Wallet.Balance.ToString("N0");
-            livesText.text = Lives.Lives + "/" + Cfg.MaxLives;
-            var t = Lives.TimeToNext; livesSub.text = Lives.Lives >= Cfg.MaxLives ? "" : string.Format("{0}:{1:00}", (int)t.TotalMinutes, t.Seconds);
+            if (Lives.Infinite)
+            {
+                var left = Lives.InfiniteLeft;
+                livesText.text = Lives.Lives + "/" + Cfg.MaxLives;
+                livesSub.text = left.TotalHours >= 1 ? string.Format("Endless {0}h {1:00}m", (int)left.TotalHours, left.Minutes) : string.Format("Endless {0}:{1:00}", left.Minutes, left.Seconds);
+            }
+            else
+            {
+                livesText.text = Lives.Lives + "/" + Cfg.MaxLives;
+                var t = Lives.TimeToNext; livesSub.text = Lives.Lives >= Cfg.MaxLives ? "" : string.Format("{0}:{1:00}", (int)t.TotalMinutes, t.Seconds);
+            }
             if (playLabel != null)
             {
                 playLabel.text = HasResume ? Loc.F("Continue  -  Level {0}", D.resumeLevel) : Loc.F("Level {0}", PlayTargetLevel);
@@ -633,25 +642,86 @@ namespace PaintSort.Game
             }
         }
 
-        // ---------------------------------------------------------------- shop (scaffold)
+        // ---------------------------------------------------------------- shop
+        // Bundles (gold + power-up tokens + timed endless lives) first, then plain gold packs. Real billing stays off in release builds
+        // (Purchases.Available is false there), so the buy buttons read "Soon" and do nothing.
         public void OpenShop()
         {
             Analytics.Event("shop_opened");
-            var c = Panel("Gold Shop", new Vector2(980, 1300), out var go, true, UI.Blue);
-            if (!Cfg.ShopEnabled) Line(c, "Coming soon! Real-money purchases are switched off until store billing is set up.", 36, UI.Red, 880, 120);
-            else Line(c, "Prices come from the store catalogue.", 34, UI.Ink, 880, 60);
-            foreach (var p in Purchases.Products)
+            var c = Panel("Shop", new Vector2(980, 1560), out var go, true, UI.Blue);
+            bool live = Purchases.Available;
+            if (!live) Line(c, "Coming soon! Purchases are switched off until store billing is set up.", 32, UI.Red, 900, 80);
+            var sv = UI.Rect(c, "Scroll"); var le = sv.gameObject.AddComponent<LayoutElement>(); float viewH = live ? 1340 : 1250; le.preferredHeight = viewH; le.preferredWidth = 920; sv.sizeDelta = new Vector2(920, viewH);
+            var sr = sv.gameObject.AddComponent<ScrollRect>(); sr.horizontal = false; sr.movementType = ScrollRect.MovementType.Elastic; sr.scrollSensitivity = 40;
+            var vp = UI.Rect(sv, "Viewport"); UI.Stretch(vp); vp.gameObject.AddComponent<RectMask2D>(); var vpi = vp.gameObject.AddComponent<Image>(); vpi.color = new Color(0, 0, 0, 0.001f);
+            var content = UI.Rect(vp, "Content"); content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(0.5f, 1); content.sizeDelta = Vector2.zero;
+            var vl = content.gameObject.AddComponent<VerticalLayoutGroup>(); vl.spacing = 22; vl.childControlHeight = true; vl.childControlWidth = false; vl.childForceExpandHeight = false; vl.childForceExpandWidth = false; vl.childAlignment = TextAnchor.UpperCenter;
+            vl.padding = new RectOffset(0, 0, 6, 24);
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            sr.viewport = vp; sr.content = content;
+
+            ShopHeader(content, "Magic Bundles", UI.Purple);
+            foreach (var p in Purchases.Products) if (p.IsBundle) ShopCard(content, p, live);
+            ShopHeader(content, "Gold Packs", UI.Orange);
+            foreach (var p in Purchases.Products) if (!p.IsBundle) ShopCard(content, p, live);
+        }
+
+        void ShopHeader(Transform parent, string text, Color col)
+        {
+            var it = Item(parent, 900, 84);
+            var rt = UI.Banner(it, text, col, new Vector2(560, 76), 46);   // glossy banner (not tappable)
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); rt.anchoredPosition = Vector2.zero;
+        }
+
+        static string Span(int minutes) { return minutes >= 1440 ? (minutes / 1440) + "d" : minutes >= 60 ? (minutes / 60) + "h" : minutes + "m"; }
+
+        /// <summary>One offer: coin pile + amount on the left, bundled perks in the middle, name strip and buy button along the bottom.</summary>
+        void ShopCard(Transform parent, GoldPack pack, bool live)
+        {
+            const float W = 900, H = 250;
+            var it = Item(parent, W, H); var root = (RectTransform)it;
+            var sh = UI.Img(root, "Shadow", Art.RoundSoft, new Color(0.25f, 0.1f, 0.3f, 0.3f), true); UI.Stretch(sh.rectTransform, -4, -12, -4, 4);
+            var edge = UI.Img(root, "Edge", Art.Round, UI.GoldEdge, true); UI.Stretch(edge.rectTransform);
+            var rim = UI.Img(root, "Rim", Art.Round, Art.Hex("B9761F"), true); UI.Stretch(rim.rectTransform, 6, 6, 6, 6);
+            var face = UI.Img(root, "Face", Art.Round, Art.Hex("FFF1D2"), true); UI.Stretch(face.rectTransform, 11, 11, 11, 11);
+            Color strip = pack.IsBundle ? Art.Hex("3E7BE0") : Art.Hex("E8832F");
+            var bar = UI.Img(root, "Strip", Art.Round, strip, true); bar.rectTransform.anchorMin = new Vector2(0, 0); bar.rectTransform.anchorMax = new Vector2(1, 0); bar.rectTransform.offsetMin = new Vector2(11, 11); bar.rectTransform.offsetMax = new Vector2(-11, 107);
+
+            // coin pile grows with the amount; the number sits over its lower edge
+            float coinSize = pack.Gold >= 20000 ? 190 : pack.Gold >= 4000 ? 170 : pack.Gold >= 2000 ? 150 : 130;
+            if (pack.Gold >= 4000) { var c2 = UI.Img(root, "Coin2", Art.Coin, Color.white); UI.Place(c2.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(70, 156), Vector2.one * coinSize * 0.62f); }
+            var coin = UI.Img(root, "Coin", Art.Coin, Color.white); UI.Place(coin.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140, 172), Vector2.one * coinSize);
+            var amount = UI.Txt(root, pack.Gold.ToString("N0"), 54, Color.white); UI.Place(amount.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140, 128), new Vector2(240, 70));
+
+            // perks
+            float x = 380;
+            if (pack.InfiniteMinutes > 0)
             {
-                var pack = p;
-                var inner = UI.Card(c, Art.Hex("FFFFFF"), new Vector2(880, 130), 5, false); var rr = (RectTransform)inner.parent;
-                var le = rr.gameObject.AddComponent<LayoutElement>(); le.preferredHeight = 130; le.preferredWidth = 880;
-                var ic = UI.Img(inner, "I", Art.Coin, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(76, 0), new Vector2(96, 96));
-                var tt = UI.Txt(inner, pack.Title, 36, Color.white, TextAnchor.MiddleLeft); tt.rectTransform.anchorMin = new Vector2(0, 0.45f); tt.rectTransform.offsetMin = new Vector2(150, 0);
-                var gg = UI.Txt(inner, pack.Gold.ToString("N0") + " Gold", 30, UI.Ink, TextAnchor.MiddleLeft, false); gg.rectTransform.anchorMax = new Vector2(1, 0.45f); gg.rectTransform.offsetMin = new Vector2(150, 0);
-                var buy = UI.Btn(inner, Cfg.ShopEnabled ? pack.PlaceholderPrice : "Soon", UI.Green, new Vector2(220, 90), () => BuyPack(pack), null, 36);
-                UI.Place((RectTransform)buy.transform, new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-20, 0), new Vector2(220, 90));
-                UI.SetEnabled(buy, Cfg.ShopEnabled && Purchases.Available);
+                var heart = UI.Img(root, "Heart", Art.Heart, Color.white); UI.Place(heart.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(104, 104));
+                var inf = UI.Txt(root, "8", 64, Color.white);                // an eight on its side reads as the infinity sign (the font has no such glyph)
+                UI.Place(inf.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 186), new Vector2(90, 90)); inf.rectTransform.localRotation = Quaternion.Euler(0, 0, 90);
+                var dur = UI.Txt(root, Span(pack.InfiniteMinutes), 40, Art.Hex("6B4423"), TextAnchor.MiddleCenter, false); UI.Place(dur.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 124), new Vector2(140, 44));
+                x += 170;
             }
+            if (pack.Shuffles > 0) { ShopChip(root, Art.Shuffle, pack.Shuffles, x); x += 140; }
+            if (pack.ExtraPots > 0) { ShopChip(root, Art.Plus, pack.ExtraPots, x); x += 140; }
+
+            // bottom strip: name + price
+            var nm = UI.Txt(root, pack.Title, 44, Color.white, TextAnchor.MiddleLeft); nm.rectTransform.anchorMin = new Vector2(0, 0); nm.rectTransform.anchorMax = new Vector2(0.6f, 0);
+            nm.rectTransform.offsetMin = new Vector2(40, 14); nm.rectTransform.offsetMax = new Vector2(0, 104);
+            nm.resizeTextForBestFit = true; nm.resizeTextMaxSize = 44; nm.resizeTextMinSize = 24; nm.horizontalOverflow = HorizontalWrapMode.Wrap; nm.verticalOverflow = VerticalWrapMode.Truncate;
+            var buy = UI.Btn(root, live ? pack.PlaceholderPrice : "Soon", UI.Green, new Vector2(250, 84), () => BuyPack(pack), null, 44);
+            UI.Place((RectTransform)buy.transform, new Vector2(1, 0), new Vector2(1, 0.5f), new Vector2(-24, 59), new Vector2(250, 84));
+            UI.SetEnabled(buy, live);
+        }
+
+        /// <summary>Purple tile showing a power-up icon with its count ("x3") on the corner.</summary>
+        static void ShopChip(RectTransform parent, Sprite icon, int count, float x)
+        {
+            var edge = UI.Img(parent, "ChipEdge", Art.Round, UI.GoldEdge, true); UI.Place(edge.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(104, 104));
+            var face = UI.Img(parent, "Chip", Art.Round, Art.Hex("7B4DE0"), true); UI.Place(face.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(92, 92));
+            var ic = UI.Img(parent, "ChipIcon", icon, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 184), new Vector2(66, 66));
+            var n = UI.Txt(parent, "x" + count, 40, Color.white); UI.Place(n.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x + 30, 138), new Vector2(90, 44));
         }
 
         void BuyPack(GoldPack p)
@@ -660,8 +730,13 @@ namespace PaintSort.Game
             Purchases.Purchase(p, (ok, token) =>
             {
                 if (!ok) { Toast(token); return; }
-                // Gold only ever comes from a verified purchase result; the token makes the grant idempotent.
-                if (Wallet.Grant(p.Gold, "iap_purchase", 0, "iap_" + token)) { Analytics.Event("purchase_completed", p.ProductId); Toast("+" + p.Gold + " Gold"); Audio.Play("coin"); }
+                // Everything is granted only on a verified purchase result; the token makes the grant idempotent (gold first: a repeat grants nothing).
+                if (!Wallet.Grant(p.Gold, "iap_purchase", 0, "iap_" + token)) return;
+                D.freeShuffleTokens += p.Shuffles; D.freeExtraPotTokens += p.ExtraPots;
+                if (p.InfiniteMinutes > 0) Lives.GrantInfinite(TimeSpan.FromMinutes(p.InfiniteMinutes));
+                Persist(); RefreshHud(); ApplyPowerStates();
+                Analytics.Event("purchase_completed", p.ProductId); Audio.Play("coin");
+                Toast("+" + p.Gold.ToString("N0") + " Gold" + (p.IsBundle ? "  and bonus power-ups!" : ""));
             });
         }
 

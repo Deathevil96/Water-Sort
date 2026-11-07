@@ -273,6 +273,20 @@ namespace PaintSort.Tests
         }
 
         [Test]
+        public void InfiniteLivesLastExactlyAsLongAsBoughtAndStack()
+        {
+            var t = new OffsetTimeProvider(); var cfg = new EconomyConfig(); var lv = new LivesModel(cfg, t);
+            while (lv.Lives > 0) lv.Consume();
+            Assert.IsFalse(lv.HasLife);
+            lv.GrantInfinite(System.TimeSpan.FromMinutes(60));
+            Assert.IsTrue(lv.HasLife); Assert.IsTrue(lv.Consume()); Assert.AreEqual(0, lv.Lives, "endless lives are not used up");
+            lv.GrantInfinite(System.TimeSpan.FromMinutes(60));                       // a second bundle adds to the first
+            t.Offset = System.TimeSpan.FromMinutes(100); Assert.IsTrue(lv.Infinite);
+            t.Offset = System.TimeSpan.FromMinutes(121); Assert.IsFalse(lv.Infinite);
+            Assert.IsTrue(lv.HasLife, "regeneration while endless is not lost: a life came back during the perk");
+        }
+
+        [Test]
         public void DailyRewardsFollowTrackAndPayBonusOnce()
         {
             var t = new OffsetTimeProvider(); var cfg = new EconomyConfig(); var w = new GoldWallet(t); var d = new DailyRewardModel(cfg, t);

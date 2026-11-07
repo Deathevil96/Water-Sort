@@ -117,7 +117,18 @@ namespace PaintSort.Core
             if (Lives != before) Changed?.Invoke();
         }
 
-        public bool HasLife { get { Tick(); return Lives > 0; } }
+        /// <summary>While this moment is in the future, lives are not used up (a shop bundle perk). Saved with the game.</summary>
+        public long InfiniteUntilTicks;
+        public bool Infinite => InfiniteUntilTicks > time.UtcNow.Ticks;
+        public TimeSpan InfiniteLeft { get { var left = new TimeSpan(InfiniteUntilTicks) - new TimeSpan(time.UtcNow.Ticks); return left < TimeSpan.Zero ? TimeSpan.Zero : left; } }
+        /// <summary>Starts (or extends) infinite lives for the given time.</summary>
+        public void GrantInfinite(TimeSpan span)
+        {
+            long start = Math.Max(InfiniteUntilTicks, time.UtcNow.Ticks);
+            InfiniteUntilTicks = start + span.Ticks; Changed?.Invoke();
+        }
+
+        public bool HasLife { get { if (Infinite) return true; Tick(); return Lives > 0; } }
 
         public TimeSpan TimeToNext
         {
@@ -132,6 +143,7 @@ namespace PaintSort.Core
 
         public bool Consume()
         {
+            if (Infinite) return true;
             Tick();
             if (Lives <= 0) return false;
             if (Lives >= cfg.MaxLives) LastRegenTicks = time.UtcNow.Ticks;

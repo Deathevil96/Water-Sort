@@ -36,6 +36,7 @@ namespace PaintSort.Game
         public List<string> seen = new List<string>();
         public bool leaderboardUnlockedLogged;
         public int freeShuffleTokens, freeExtraPotTokens;
+        public long infiniteLivesUntilTicks;
         // resume-after-restart: the level being played and its serialized board (see PuzzleState.Serialize)
         public int resumeLevel;
         public string resumeBoard = "";
@@ -127,7 +128,13 @@ namespace PaintSort.Game
     }
 
     // ----------------------------------------------------------------------- purchases (scaffold; real billing stays off behind a flag)
-    public sealed class GoldPack { public string ProductId, Title; public int Gold; public string PlaceholderPrice; public bool OneTime; }
+    public sealed class GoldPack
+    {
+        public string ProductId, Title; public int Gold; public string PlaceholderPrice; public bool OneTime;
+        /// <summary>Power-ups and perks bundled with the gold (all zero for a plain gold pack).</summary>
+        public int Shuffles, ExtraPots, InfiniteMinutes;
+        public bool IsBundle => Shuffles > 0 || ExtraPots > 0 || InfiniteMinutes > 0;
+    }
 
     public interface IPurchaseService
     {
@@ -142,11 +149,17 @@ namespace PaintSort.Game
         public bool Available => false;
         public List<GoldPack> Products { get; } = new List<GoldPack>
         {
-            new GoldPack{ProductId="gold_small",  Title="Small Gold Pack",  Gold=1000,  PlaceholderPrice="—"},
-            new GoldPack{ProductId="gold_medium", Title="Medium Gold Pack", Gold=3000,  PlaceholderPrice="—"},
-            new GoldPack{ProductId="gold_large",  Title="Large Gold Pack",  Gold=8000,  PlaceholderPrice="—"},
-            new GoldPack{ProductId="gold_mega",   Title="Mega Gold Pack",   Gold=20000, PlaceholderPrice="—"},
-            new GoldPack{ProductId="gold_starter",Title="Starter Offer",    Gold=2500,  PlaceholderPrice="—", OneTime=true},
+            // bundles: gold + power-up tokens + a timed infinite-lives perk (placeholder prices; the store supplies the real ones)
+            new GoldPack{ProductId="bundle_starter",    Title="Starter Bundle",    Gold=1000,  Shuffles=1,  ExtraPots=1,  InfiniteMinutes=60,   PlaceholderPrice="$0.99", OneTime=true},
+            new GoldPack{ProductId="bundle_apprentice", Title="Apprentice Bundle", Gold=2000,  Shuffles=1,  ExtraPots=1,  InfiniteMinutes=180,  PlaceholderPrice="$4.99"},
+            new GoldPack{ProductId="bundle_magician",   Title="Magician Bundle",   Gold=4000,  Shuffles=3,  ExtraPots=3,  InfiniteMinutes=360,  PlaceholderPrice="$9.99"},
+            new GoldPack{ProductId="bundle_wizard",     Title="Wizard Bundle",     Gold=10000, Shuffles=6,  ExtraPots=6,  InfiniteMinutes=720,  PlaceholderPrice="$19.99"},
+            new GoldPack{ProductId="bundle_archmage",   Title="Archmage Bundle",   Gold=25000, Shuffles=12, ExtraPots=12, InfiniteMinutes=1440, PlaceholderPrice="$49.99"},
+            // plain gold
+            new GoldPack{ProductId="gold_small",  Title="Small Gold Pack",  Gold=1000,  PlaceholderPrice="$0.99"},
+            new GoldPack{ProductId="gold_medium", Title="Medium Gold Pack", Gold=3000,  PlaceholderPrice="$2.99"},
+            new GoldPack{ProductId="gold_large",  Title="Large Gold Pack",  Gold=8000,  PlaceholderPrice="$7.99"},
+            new GoldPack{ProductId="gold_mega",   Title="Mega Gold Pack",   Gold=20000, PlaceholderPrice="$19.99"},
         };
         public void Purchase(GoldPack pack, Action<bool, string> done) { done(false, "Store billing is not enabled yet."); }
         public void Restore(Action<string> done) { done("Nothing to restore (billing disabled)."); }

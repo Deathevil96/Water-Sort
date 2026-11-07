@@ -95,6 +95,7 @@ namespace PaintSort.Game
                 d.startGoldGranted = true;
             }
             Lives.Load(d.livesLastRegenTicks == 0 ? Cfg.MaxLives : d.lives, d.livesLastRegenTicks == 0 ? Clock.UtcNow.Ticks : d.livesLastRegenTicks);
+            Lives.InfiniteUntilTicks = d.infiniteLivesUntilTicks;
             Daily.WeekIndex = d.dailyWeek; Daily.ClaimedCount = d.dailyClaimed; Daily.LastClaimDay = d.dailyLastDay; Daily.BonusPaid = d.dailyBonusPaid; Daily.EverCompletedWeek = d.dailyEverCompleted;
             AdPol.LastAdTicks = d.lastAdTicks;
             Audio.SfxOn = d.sfxOn; Audio.HapticsOn = d.hapticsOn; Audio.MusicOn = d.musicOn;
@@ -115,7 +116,7 @@ namespace PaintSort.Game
             var d = D;
             if (Wallet.Ledger.Count > MaxLedgerEntries) Wallet.Ledger.RemoveRange(0, Wallet.Ledger.Count - MaxLedgerEntries);
             d.gold = Wallet.Balance; d.ledger = Wallet.Ledger; d.claimIds = new List<string>(Wallet.ClaimIds);
-            d.lives = Lives.Lives; d.livesLastRegenTicks = Lives.LastRegenTicks;
+            d.lives = Lives.Lives; d.livesLastRegenTicks = Lives.LastRegenTicks; d.infiniteLivesUntilTicks = Lives.InfiniteUntilTicks;
             d.dailyWeek = Daily.WeekIndex; d.dailyClaimed = Daily.ClaimedCount; d.dailyLastDay = Daily.LastClaimDay; d.dailyBonusPaid = Daily.BonusPaid; d.dailyEverCompleted = Daily.EverCompletedWeek;
             d.lastAdTicks = AdPol.LastAdTicks; d.sfxOn = Audio.SfxOn; d.hapticsOn = Audio.HapticsOn; d.musicOn = Audio.MusicOn; d.language = Loc.Language;
             d.stats.WeekTrackCompleted = Daily.EverCompletedWeek;
