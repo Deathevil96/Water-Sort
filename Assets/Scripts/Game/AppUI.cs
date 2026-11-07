@@ -688,19 +688,19 @@ namespace PaintSort.Game
             var bar = UI.Img(root, "Strip", Art.Round, strip, true); bar.rectTransform.anchorMin = new Vector2(0, 0); bar.rectTransform.anchorMax = new Vector2(1, 0); bar.rectTransform.offsetMin = new Vector2(11, 11); bar.rectTransform.offsetMax = new Vector2(-11, 107);
 
             // coin pile grows with the amount; the number sits over its lower edge
-            float coinSize = pack.Gold >= 20000 ? 190 : pack.Gold >= 4000 ? 170 : pack.Gold >= 2000 ? 150 : 130;
-            if (pack.Gold >= 4000) { var c2 = UI.Img(root, "Coin2", Art.Coin, Color.white); UI.Place(c2.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(70, 156), Vector2.one * coinSize * 0.62f); }
-            var coin = UI.Img(root, "Coin", Art.Coin, Color.white); UI.Place(coin.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140, 172), Vector2.one * coinSize);
-            var amount = UI.Txt(root, pack.Gold.ToString("N0"), 54, Color.white); UI.Place(amount.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140, 128), new Vector2(240, 70));
+            // (everything stays inside the card: the free area above the name strip is about 130 high)
+            int piles = pack.Gold >= 20000 ? 3 : pack.Gold >= 4000 ? 2 : 1;
+            for (int k = piles - 1; k >= 1; k--) { var cb = UI.Img(root, "CoinBack" + k, Art.Coin, Color.white); UI.Place(cb.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140 - 52 * k, 176 - 6 * k), Vector2.one * 80); }
+            var coin = UI.Img(root, "Coin", Art.Coin, Color.white); UI.Place(coin.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(150, 184), Vector2.one * 104);
+            var amount = UI.Txt(root, pack.Gold.ToString("N0"), 44, Color.white); UI.Place(amount.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(140, 134), new Vector2(240, 50));
 
             // perks
             float x = 380;
             if (pack.InfiniteMinutes > 0)
             {
-                var heart = UI.Img(root, "Heart", Art.Heart, Color.white); UI.Place(heart.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(104, 104));
-                var inf = UI.Txt(root, "8", 64, Color.white);                // an eight on its side reads as the infinity sign (the font has no such glyph)
-                UI.Place(inf.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 186), new Vector2(90, 90)); inf.rectTransform.localRotation = Quaternion.Euler(0, 0, 90);
-                var dur = UI.Txt(root, Span(pack.InfiniteMinutes), 40, Art.Hex("6B4423"), TextAnchor.MiddleCenter, false); UI.Place(dur.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 124), new Vector2(140, 44));
+                var heart = UI.Img(root, "Heart", Art.Heart, Color.white); UI.Place(heart.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 188), new Vector2(96, 96));
+                var inf = UI.Img(root, "Infinity", Art.Infinity, Color.white); UI.Place(inf.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 186), new Vector2(76, 38));
+                var dur = UI.Txt(root, Span(pack.InfiniteMinutes), 38, Art.Hex("6B4423"), TextAnchor.MiddleCenter, false); UI.Place(dur.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 132), new Vector2(140, 40));
                 x += 170;
             }
             if (pack.Shuffles > 0) { ShopChip(root, Art.Shuffle, pack.Shuffles, x); x += 140; }
@@ -718,10 +718,10 @@ namespace PaintSort.Game
         /// <summary>Purple tile showing a power-up icon with its count ("x3") on the corner.</summary>
         static void ShopChip(RectTransform parent, Sprite icon, int count, float x)
         {
-            var edge = UI.Img(parent, "ChipEdge", Art.Round, UI.GoldEdge, true); UI.Place(edge.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(104, 104));
-            var face = UI.Img(parent, "Chip", Art.Round, Art.Hex("7B4DE0"), true); UI.Place(face.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 182), new Vector2(92, 92));
-            var ic = UI.Img(parent, "ChipIcon", icon, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 184), new Vector2(66, 66));
-            var n = UI.Txt(parent, "x" + count, 40, Color.white); UI.Place(n.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x + 30, 138), new Vector2(90, 44));
+            var edge = UI.Img(parent, "ChipEdge", Art.Round, UI.GoldEdge, true); UI.Place(edge.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 186), new Vector2(92, 92));
+            var face = UI.Img(parent, "Chip", Art.Round, Art.Hex("7B4DE0"), true); UI.Place(face.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 186), new Vector2(80, 80));
+            var ic = UI.Img(parent, "ChipIcon", icon, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 188), new Vector2(56, 56));
+            var n = UI.Txt(parent, "x" + count, 36, Color.white); UI.Place(n.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 0.5f), new Vector2(x, 132), new Vector2(120, 40));
         }
 
         void BuyPack(GoldPack p)

@@ -182,6 +182,15 @@ namespace PaintSort.Game
         /// <summary>9-sliced white rounded rect; tint with Image.color.</summary>
         public static Sprite Round => Get("round", () => Make(96, 96, (x, y) => With(Color.white, Cov(SdBox(new Vector2(x, y), new Vector2(48, 48), new Vector2(48, 48), 36))), new Vector4(40, 40, 40, 40)));
         public static Sprite RoundSoft => Get("roundsoft", () => Make(96, 96, (x, y) => { float d = SdBox(new Vector2(x, y), new Vector2(48, 48), new Vector2(46, 46), 30); return With(Color.white, Mathf.Clamp01(0.5f - d / 6f)); }, new Vector4(40, 40, 40, 40)));
+        /// <summary>White infinity sign with a dark outline (two loops), drawn in code because the font has no such glyph.</summary>
+        public static Sprite Infinity => Get("infinity", () => Make(128, 64, (x, y) =>
+        {
+            var p = new Vector2(x, y); var c1 = new Vector2(40, 32); var c2 = new Vector2(88, 32);
+            float dr = Mathf.Min(Mathf.Abs((p - c1).magnitude - 17f), Mathf.Abs((p - c2).magnitude - 17f));      // distance to the nearer loop's centre line
+            Color col = With(Ink, Cov(dr - 11f));
+            col = Over(With(Color.white, Cov(dr - 5.5f)), col);
+            return col;
+        }));
         public static Sprite Circle => Get("circle", () => Make(128, 128, (x, y) => With(Color.white, Cov(SdCircle(new Vector2(x, y), new Vector2(64, 64), 62)))));
 
         public static Sprite Heart => Get("heart", () => Icon(96, p =>
