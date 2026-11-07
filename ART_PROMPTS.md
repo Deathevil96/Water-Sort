@@ -1,3 +1,5 @@
+> **Superseded.** The up-to-date prompts are on the interactive page (https://claude.ai/artifact/RzW8kg2J1eKDor6e1BUiDz): every prompt there is complete on its own, with the style text added automatically on Copy. This file is kept as an offline reference for the file names, sizes and layout rules.
+
 # Paint Magic Sort — ChatGPT Art Prompt Pack (v2: bright glossy casual-puzzle style, UI included)
 
 The game already runs with **procedural placeholder art**. Every image below is an optional override: put the PNG in
