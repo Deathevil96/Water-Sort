@@ -110,6 +110,7 @@ namespace PaintSort.Game
             safeRoot.offsetMin = safeRoot.offsetMax = Vector2.zero;
             SafeSize = new Vector2(sa.width * lastW / scale, sa.height * lastH / scale);
             LayoutBackdrop(new Vector2(lastW, lastH) / scale);
+            LayoutSplash(new Vector2(lastW, lastH) / scale);
 
             Relayout();
         }

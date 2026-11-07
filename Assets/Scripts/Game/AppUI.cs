@@ -53,6 +53,7 @@ namespace PaintSort.Game
             toastLayer = UI.Rect(safeRoot, "Toasts"); UI.Stretch(toastLayer);
             BuildToast();
             BuildFade();
+            BuildSplash();
 
             // Separate canvases: a HUD text change rebuilds only the HUD mesh, not the board or the popups.
             UI.SubCanvas(menuScreen); UI.SubCanvas(gameScreen); UI.SubCanvas(topBar); UI.SubCanvas(popupLayer); UI.SubCanvas(toastLayer, false);

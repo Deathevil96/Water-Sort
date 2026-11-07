@@ -459,6 +459,7 @@ namespace PaintSort.Game
         public void UseIsolatedSaveForTests(string path)
         {
             Save = new SaveService(path); Save.Delete(); saveDirty = false;
+            HideSplashNow();
             ResetAllProgress();
         }
 

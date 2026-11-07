@@ -28,6 +28,9 @@ namespace PaintSort.EditorTools
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, AndroidPackage);
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, AndroidPackage);
 
+            // the studio splash is drawn by the game itself (App.Splash.cs); switch Unity's own splash off (Unity 6 allows it on every plan)
+            PlayerSettings.SplashScreen.show = false;
+
             // orientation: the game picks the orientation per device class at runtime; allow all three here so tablets and TV can rotate
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
             PlayerSettings.allowedAutorotateToPortrait = true;
