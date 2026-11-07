@@ -132,7 +132,11 @@ namespace PaintSort.Game
         {
             if (gameScreen == null) return;
             float W = SafeSize.x, H = SafeSize.y;
-            bannerH = Device == DeviceClass.Tv ? 0f : IsLandscape ? 90f : 120f;
+            // The banner strip is only a placeholder until an ad SDK exists, so shipped (non-development) builds reserve no space for it.
+            // WHEN ADS ARE ADDED set this to true for release builds as well.
+            const bool ReserveBannerInRelease = false;
+            bool reserveBanner = ReserveBannerInRelease || Application.isEditor || Debug.isDebugBuild;
+            bannerH = !reserveBanner || Device == DeviceClass.Tv ? 0f : IsLandscape ? 90f : 120f;
             bannerRoot.gameObject.SetActive(bannerH > 0f);
             bannerRoot.anchorMin = Vector2.zero; bannerRoot.anchorMax = new Vector2(1, 0);
             bannerRoot.offsetMin = Vector2.zero; bannerRoot.offsetMax = new Vector2(0, bannerH);
