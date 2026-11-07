@@ -28,6 +28,8 @@ namespace PaintSort.EditorTools
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, AndroidPackage);
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, AndroidPackage);
 
+            ApplyPrivacySettings();
+
             // the studio splash is drawn by the game itself (App.Splash.cs); switch Unity's own splash off (Unity 6 allows it on every plan)
             PlayerSettings.SplashScreen.show = false;
 
@@ -69,6 +71,34 @@ namespace PaintSort.EditorTools
 
             AssetDatabase.SaveAssets();
             Debug.Log("[SETUP] " + Company + " / " + Product + " / " + AndroidPackage + " (version comes from version.json on build)");
+        }
+
+        /// <summary>
+        /// Privacy: the game must not talk to anyone except (later) the ad network. Unity's own engine diagnostics / analytics / crash upload endpoints
+        /// are switched off, and the INTERNET permission is not forced. An Android app without that permission cannot open a network connection at all,
+        /// so until an ad SDK is added the shipped game is physically unable to expose the player's IP. When an ad SDK is added it brings its own
+        /// permission; re-run the on-device socket check described in PAINT_SORT_STATUS.md afterwards.
+        /// </summary>
+        static void ApplyPrivacySettings()
+        {
+            PlayerSettings.Android.forceInternetPermission = false;
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "InsightsSettings.m_EngineDiagnosticsEnabled", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "InsightsSettings.m_Enabled", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "CrashReportingSettings.m_EnableCloudDiagnosticsReporting", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "UnityAnalyticsSettings.m_Enabled", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "UnityAdsSettings.m_Enabled", false);
+            SetBool("ProjectSettings/UnityConnectSettings.asset", "UnityPurchasingSettings.m_Enabled", false);
+            SetBool("ProjectSettings/ProjectSettings.asset", "submitAnalytics", false);
+            PlayerSettings.enableCrashReportAPI = false;
+        }
+
+        static void SetBool(string assetPath, string property, bool value)
+        {
+            var objs = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            if (objs == null || objs.Length == 0) { Debug.LogWarning("[SETUP] privacy: cannot load " + assetPath); return; }
+            var so = new SerializedObject(objs[0]); var p = so.FindProperty(property);
+            if (p == null) { Debug.LogWarning("[SETUP] privacy: no property " + property); return; }
+            p.boolValue = value; so.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }
