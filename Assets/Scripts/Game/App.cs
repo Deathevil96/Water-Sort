@@ -57,6 +57,7 @@ namespace PaintSort.Game
         {
             if (I != null) { Destroy(gameObject); return; }
             I = this; DontDestroyOnLoad(gameObject);
+            InputMode.FocusVisible = false;          // static state can outlive a stopped Editor play session; only keys / a TV remote may turn the cursor ring on
             Application.targetFrameRate = 60;
 #if !UNITY_EDITOR
             QualitySettings.vSyncCount = 0;          // let targetFrameRate pace the game on devices
