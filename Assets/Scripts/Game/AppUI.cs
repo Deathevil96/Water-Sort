@@ -150,8 +150,9 @@ namespace PaintSort.Game
             menuHero.sizeDelta = new Vector2(MenuDesignWidth, MenuHeroHeight); menuActions.sizeDelta = new Vector2(MenuDesignWidth, MenuActionsHeight);
 
             var top = new Vector2(0.5f, 1f);
-            var logo = UI.Txt(menuHero, "<color=#E84C5B>P</color><color=#399CE0>A</color><color=#F5CE45>I</color><color=#54C99B>N</color><color=#9867D5>T</color>\n<color=#F58D67>S</color><color=#E88DC3>O</color><color=#35C6C5>R</color><color=#B5A1E8>T</color>", 190, Color.white);
-            logo.supportRichText = true; logo.lineSpacing = 0.85f;
+            // placeholder wordmark (replaced by Resources/Art/logo.png when it exists): "PAINT" big, "MAGIC SORT" smaller underneath
+            var logo = UI.Txt(menuHero, "<color=#E84C5B>P</color><color=#399CE0>A</color><color=#F5CE45>I</color><color=#54C99B>N</color><color=#9867D5>T</color>\n<size=100><color=#F58D67>M</color><color=#E88DC3>A</color><color=#35C6C5>G</color><color=#B5A1E8>I</color><color=#E84C5B>C</color> <color=#399CE0>S</color><color=#F5CE45>O</color><color=#54C99B>R</color><color=#9867D5>T</color></size>", 190, Color.white);
+            logo.supportRichText = true; logo.lineSpacing = 0.9f;
             UI.Place(logo.rectTransform, top, top, new Vector2(0, -40), new Vector2(1000, 420));
             var logoSprite = Resources.Load<Sprite>("Art/logo");
             if (logoSprite != null)
@@ -658,6 +659,7 @@ namespace PaintSort.Game
             var row = BtnRow(c, 860, 110);
             RowBtn(row, "Privacy", UI.Grey, 410, 100, () => Toast("Consent options will appear once an ad SDK is connected."), null, 36);
             RowBtn(row, "Restore Buys", UI.Grey, 410, 100, () => Purchases.Restore(m => Toast(m)), null, 34);
+            Line(c, Application.productName + "  v" + Application.version, 28, UI.Ink, 820, 40);
             PopBtn(c, "Reset Progress", UI.Red, 820, 110, () => OpenDialog("Reset everything?", "This erases levels, Gold, lives and achievements. It cannot be undone.", ("Cancel", UI.Grey, null), ("Erase", UI.Red, () => OpenDialog("Really erase?", "Last chance — all progress will be deleted.", ("Keep it", UI.Green, null), ("Erase now", UI.Red, ResetAllProgress)))), go);
         }
 

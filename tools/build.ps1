@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS  One-command build of Paint Sort from the command line (close the Unity Editor first: a project can only be open once).
 .EXAMPLE   .\tools\build.ps1 -Target Android -Development
-.EXAMPLE   .\tools\build.ps1 -Target Android -Aab -BuildNumber 12 -Output Builds\PaintSort.aab
-.NOTES     Set UNITY_PATH to the Unity.exe of editor version 6000.6.7f1 if it is not in the default Hub location.
+.EXAMPLE   .\tools\build.ps1 -Target Android -Aab        # release: bumps the Play Store build code in version.json
+.NOTES     Release builds (no -Development) bump the build code in version.json; development builds never do.
+           Set UNITY_PATH to the Unity.exe of editor version 6000.6.7f1 if it is not in the default Hub location.
 #>
 param(
     [ValidateSet('Android', 'Windows')] [string] $Target = 'Android',
     [switch] $Development,
     [switch] $Aab,
-    [int] $BuildNumber = 0,
     [string] $Output = ''
 )
 
@@ -21,7 +21,6 @@ $method = if ($Target -eq 'Android') { 'PaintSort.EditorTools.BuildTools.BuildAn
 $arguments = @('-batchmode', '-nographics', '-quit', '-projectPath', $project, '-executeMethod', $method, '-logFile', (Join-Path $project 'Builds\build.log'))
 if ($Development) { $arguments += '-development' }
 if ($Aab)         { $arguments += '-aab' }
-if ($BuildNumber) { $arguments += @('-buildNumber', $BuildNumber) }
 if ($Output)      { $arguments += @('-output', $Output) }
 
 New-Item -ItemType Directory -Force (Join-Path $project 'Builds') | Out-Null
