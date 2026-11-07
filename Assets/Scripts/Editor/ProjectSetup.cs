@@ -44,6 +44,26 @@ namespace PaintSort.EditorTools
             if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
             else Debug.LogWarning("[SETUP] Assets/Art/Store/app_icon.png not found; app icon left unchanged");
 
+            // Android 8+ draws launcher icons from adaptive layers (background + foreground); without them the phone shows a generic icon
+            var bg = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Store/icon_background.png");
+            var fg = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Store/icon_foreground.png");
+            if (bg != null && fg != null)
+            {
+                foreach (var kind in PlayerSettings.GetSupportedIconKinds(NamedBuildTarget.Android))
+                {
+                    var slots = PlayerSettings.GetPlatformIcons(NamedBuildTarget.Android, kind);
+                    foreach (var slot in slots)
+                    {
+                        int layers = Mathf.Max(slot.GetTextures().Length, 2);
+                        var set = new Texture2D[layers];
+                        set[0] = bg; if (layers > 1) set[1] = fg;
+                        slot.SetTextures(set);
+                    }
+                    PlayerSettings.SetPlatformIcons(NamedBuildTarget.Android, kind, slots);
+                }
+            }
+            else Debug.LogWarning("[SETUP] adaptive icon layers not found in Assets/Art/Store");
+
             AssetDatabase.SaveAssets();
             Debug.Log("[SETUP] " + Company + " / " + Product + " / " + AndroidPackage + " (version comes from version.json on build)");
         }
