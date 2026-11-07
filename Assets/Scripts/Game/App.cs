@@ -167,7 +167,9 @@ namespace PaintSort.Game
         void ClearResume() { if (D.resumeLevel == 0 && string.IsNullOrEmpty(D.resumeBoard)) return; D.resumeLevel = 0; D.resumeBoard = ""; }
 
         /// <summary>Starts a level. With <paramref name="resume"/> the saved board for that level is restored if it is valid; otherwise a fresh attempt starts.</summary>
-        public void StartLevel(int id, bool force = false, bool resume = false)
+        public void StartLevel(int id, bool force = false, bool resume = false) { Heavy("level", () => StartLevelNow(id, force, resume)); }
+
+        void StartLevelNow(int id, bool force, bool resume)
         {
             id = Mathf.Clamp(id, 1, MaxLevel);
             if (!Catalog.Has(id)) { Toast("Level " + id + " is not available."); return; }

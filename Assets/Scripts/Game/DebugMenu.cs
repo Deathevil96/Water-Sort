@@ -155,6 +155,7 @@ namespace PaintSort.Game
             if (GUILayout.Button("Unlock next covered container")) { foreach (var p in A.State.Pots) if (p.Covered) { p.Covered = false; break; } A.Board.RenderAll(); }
             if (GUILayout.Button("Force completion event (unlock one cover)")) { foreach (var p in A.State.Pots) if (p.Covered) { p.Covered = false; break; } A.Board.RenderAll(); }
             A.XRay = GUILayout.Toggle(A.XRay, "X-ray: show true colours under ? and covers");
+            A.ForceLoadingScreens = GUILayout.Toggle(A.ForceLoadingScreens, "Always show loading screens (to preview them)");
             if (GUI.changed && A.Board != null && A.State != null) A.Board.RenderAll();
         }
 

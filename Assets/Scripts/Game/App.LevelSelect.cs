@@ -15,7 +15,9 @@ namespace PaintSort.Game
 
         // ---------------------------------------------------------------- level select
         /// <summary>Opens the level grid. A negative page opens the page that contains the level the Play button would start.</summary>
-        public void OpenLevelSelect(int page)
+        public void OpenLevelSelect(int page) { Heavy("levels", () => OpenLevelSelectNow(page)); }
+
+        void OpenLevelSelectNow(int page)
         {
             int unlocked = Mathf.Min(Mathf.Max(1, D.highestUnlocked), MaxLevel);
             int maxPage = (unlocked - 1) / LevelsPerPage;

@@ -183,7 +183,7 @@ namespace PaintSort.Game
                 var units = new List<UnitVis>(); foreach (var c in demo[i]) units.Add(new UnitVis(c, false));
                 pv.ShowUnits(units);
                 var rt = (RectTransform)go.transform; rt.localScale = Vector3.one * 0.62f;
-                UI.Place(rt, top, new Vector2(0.5f, 0.5f), new Vector2((i - 1) * 270, -(560 + (i == 1 ? -30 : 0))), rt.sizeDelta);
+                UI.Place(rt, top, new Vector2(0.5f, 0.5f), new Vector2((i - 1) * 270, -(615 + (i == 1 ? -30 : 0))), rt.sizeDelta);
                 pv.SetTilt((i - 1) * -5f);
             }
 
@@ -597,7 +597,9 @@ namespace PaintSort.Game
         }
 
         // ---------------------------------------------------------------- achievements
-        void OpenAchievements()
+        void OpenAchievements() { Heavy("awards", OpenAchievementsNow); }
+
+        void OpenAchievementsNow()
         {
             var c = Panel("Achievements", new Vector2(980, 1560), out var go, true, UI.Purple);
             var sv = UI.Rect(c, "Scroll"); var le = sv.gameObject.AddComponent<LayoutElement>(); le.preferredHeight = 1330; le.preferredWidth = 900; sv.sizeDelta = new Vector2(900, 1330);
@@ -646,7 +648,9 @@ namespace PaintSort.Game
         // ---------------------------------------------------------------- shop
         // Bundles (gold + power-up tokens + timed endless lives) first, then plain gold packs. Real billing stays off in release builds
         // (Purchases.Available is false there), so the buy buttons read "Soon" and do nothing.
-        public void OpenShop()
+        public void OpenShop() { Heavy("shop", OpenShopNow); }
+
+        void OpenShopNow()
         {
             Analytics.Event("shop_opened");
             var c = Panel("Shop", new Vector2(980, 1560), out var go, true, UI.Blue);
