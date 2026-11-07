@@ -181,6 +181,18 @@ save(square(opn('Four-Point Sparkle'), 256, 0.96), ART, 'sparkle.png')
 save(square(opn('Organic Paint Splatter'), 256, 0.96), ART, 'splat.png')
 
 # ---------------------------------------------------------------- 4. icons (4x4 grid) and symbols (4x3 grid)
+def clear_centre_hole(im):
+    """Enclosed white (e.g. the hole of the gear) is not touched by the border keying; flood it out from the middle of the picture."""
+    rgb = im.convert('RGB'); r, g, b = rgb.split()
+    mn = ImageChops.darker(ImageChops.darker(r, g), b); mx = ImageChops.lighter(ImageChops.lighter(r, g), b)
+    cand = ImageChops.multiply(mn.point(lambda v: 255 if v >= 215 else 0), ImageChops.subtract(mx, mn).point(lambda v: 255 if v <= 30 else 0))
+    work = cand.copy(); cx, cy = im.width // 2, im.height // 2
+    if work.getpixel((cx, cy)) != 255: return im
+    ImageDraw.floodfill(work, (cx, cy), 128)
+    hole = work.point(lambda v: 255 if v == 128 else 0).filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(0.8))
+    a = ImageChops.subtract(im.getchannel('A'), hole)
+    out = im.copy(); out.putalpha(a); return out
+
 def slice_grid(sub, cols, rows, names, size, fill, min_ch=232):
     im = Image.open(find(sub)).convert('RGBA'); w, h = im.size
     cw, ch = w / cols, h / rows
@@ -189,6 +201,7 @@ def slice_grid(sub, cols, rows, names, size, fill, min_ch=232):
         c, r = i % cols, i // cols
         cell = im.crop((int(c * cw), int(r * ch), int((c + 1) * cw), int((r + 1) * ch)))
         cell = key_light_background(cell, min_ch=min_ch, sat=26)
+        if name == 'gear': cell = clear_centre_hole(cell)
         save(square(cell, size, fill), ART, name + '.png')
 
 slice_grid('icon_grid', 4, 4, ['coin', 'heart', 'star', 'check', 'plus', 'lock', 'gear', 'back', 'undo', 'shuffle', 'restart', 'trophy', 'gift', 'medal', 'bag', None], 256, 0.9)

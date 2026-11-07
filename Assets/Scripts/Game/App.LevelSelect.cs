@@ -39,7 +39,7 @@ namespace PaintSort.Game
                 bool locked = level > unlocked, done = D.completed.Contains(level);
                 var diff = Progression.DifficultyFor(level);
                 Color face = locked ? UI.Grey : level == current ? UI.Gold : done ? UI.Green : diff == Difficulty.SuperHard ? UI.Red : diff == Difficulty.Hard ? UI.Orange : UI.Blue;
-                var b = UI.Btn(gridItem, level.ToString(), face, new Vector2(164, 150), () => { ClosePopup(go); StartLevel(level, false, level == D.resumeLevel); }, null, 46);
+                var b = UI.GlossBtn(gridItem, level.ToString(), face, new Vector2(164, 150), () => { ClosePopup(go); StartLevel(level, false, level == D.resumeLevel); }, 58);
                 if (locked) UI.SetEnabled(b, false);
             }
 

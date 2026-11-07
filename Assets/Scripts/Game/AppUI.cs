@@ -108,11 +108,16 @@ namespace PaintSort.Game
 
         RectTransform Pill(Transform parent, Sprite icon, Vector2 size, out Text main, out Text sub)
         {
-            var inner = UI.Card(parent, Art.Hex("FFFFFF"), size, 6f);
-            var rt = (RectTransform)inner.parent;
-            var ic = UI.Img(rt, "Icon", icon, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(size.y * 0.32f, 0), Vector2.one * size.y * 1.0f);
-            main = UI.Txt(rt, "0", 46, Color.white); main.rectTransform.offsetMin = new Vector2(size.y * 0.7f, 6); main.rectTransform.offsetMax = new Vector2(-8, -6);
-            sub = UI.Txt(rt, "", 24, Color.white); sub.rectTransform.anchorMin = new Vector2(0, 0); sub.rectTransform.anchorMax = new Vector2(1, 0.4f); sub.rectTransform.offsetMin = new Vector2(size.y * 0.7f, 0); sub.rectTransform.offsetMax = new Vector2(-8, 0);
+            // cream pill with a gold edge; the icon sits half over the left end (like the reference HUD), the number is dark and outline-free
+            var rt = UI.Rect(parent, "Pill"); rt.sizeDelta = size;
+            var sh = UI.Img(rt, "Shadow", Art.RoundSoft, new Color(0.25f, 0.1f, 0.3f, 0.35f), true); UI.Stretch(sh.rectTransform, -3, -10, -3, 4);
+            var edge = UI.Img(rt, "Edge", Art.Round, UI.GoldEdge, true); UI.Stretch(edge.rectTransform);
+            var rim = UI.Img(rt, "Rim", Art.Round, Art.Hex("B9761F"), true); UI.Stretch(rim.rectTransform, 4, 4, 4, 4);
+            var face = UI.Img(rt, "Face", Art.Round, Art.Hex("FFF3DA"), true); UI.Stretch(face.rectTransform, 8, 8, 8, 8);
+            var ic = UI.Img(rt, "Icon", icon, Color.white); UI.Place(ic.rectTransform, new Vector2(0, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(size.y * 0.12f, 2), Vector2.one * size.y * 1.12f);
+            var brown = Art.Hex("6B4423");
+            main = UI.Txt(rt, "0", 50, brown, TextAnchor.MiddleCenter, false); main.rectTransform.offsetMin = new Vector2(size.y * 0.72f, 6); main.rectTransform.offsetMax = new Vector2(-14, -4);
+            sub = UI.Txt(rt, "", 24, brown, TextAnchor.MiddleCenter, false); sub.rectTransform.anchorMin = new Vector2(0, 0); sub.rectTransform.anchorMax = new Vector2(1, 0.4f); sub.rectTransform.offsetMin = new Vector2(size.y * 0.72f, 0); sub.rectTransform.offsetMax = new Vector2(-14, 0);
             return rt;
         }
 
@@ -128,7 +133,7 @@ namespace PaintSort.Game
             var lp = Pill(topBar, Art.Heart, new Vector2(250, 92), out livesText, out livesSub);
             UI.Place(lp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(140, 0), new Vector2(250, 92));
             var gp = Pill(topBar, Art.Coin, new Vector2(330, 92), out goldText, out _);
-            UI.Place(gp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(410, 0), new Vector2(330, 92));
+            UI.Place(gp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(430, 0), new Vector2(330, 92));
             settingsBtn = UI.Btn(topBar, "", UI.Blue, new Vector2(100, 100), OpenSettings, Art.Gear);
             UI.Place((RectTransform)settingsBtn.transform, new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(100, 100));
         }
@@ -181,10 +186,12 @@ namespace PaintSort.Game
                 pv.SetTilt((i - 1) * -5f);
             }
 
-            playBtn = UI.Btn(menuActions, "", UI.Green, new Vector2(700, 190), OnPlay, null);
+            playBtn = UI.GlossBtn(menuActions, "", Art.Hex("52C62D"), new Vector2(700, 190), OnPlay);
             UI.Place((RectTransform)playBtn.transform, top, top, new Vector2(0, 0), new Vector2(700, 190));
-            var pl = UI.Txt(playBtn.transform, "PLAY", 96, Color.white); pl.rectTransform.offsetMin = new Vector2(0, 40); pl.rectTransform.offsetMax = new Vector2(0, 0);
-            playLabel = UI.Txt(playBtn.transform, "Level 1", 40, Color.white); playLabel.rectTransform.offsetMax = new Vector2(0, -130);
+            playLabel = UI.Txt(playBtn.transform, "Level 1", 100, Color.white); playLabel.rectTransform.offsetMin = new Vector2(30, 14); playLabel.rectTransform.offsetMax = new Vector2(-30, 0);
+            playLabel.horizontalOverflow = HorizontalWrapMode.Wrap; playLabel.verticalOverflow = VerticalWrapMode.Truncate;
+            playLabel.resizeTextForBestFit = true; playLabel.resizeTextMaxSize = 100; playLabel.resizeTextMinSize = 36;
+            { var ol = playLabel.GetComponent<Outline>(); ol.effectColor = Art.Hex("1F5A12"); ol.effectDistance = new Vector2(8, -8); }
             progressText = UI.Txt(menuActions, "", 38, UI.Ink, TextAnchor.MiddleCenter, false);
             UI.Place(progressText.rectTransform, top, top, new Vector2(0, -235), new Vector2(900, 60));
 

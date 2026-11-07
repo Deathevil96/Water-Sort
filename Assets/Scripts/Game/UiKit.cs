@@ -19,6 +19,7 @@ namespace PaintSort.Game
         public static readonly Color Red = Art.Hex("FF5A6E");
         public static readonly Color Grey = Art.Hex("B9B3C6");
         public static readonly Color Gold = Art.Hex("FFC83D");
+        public static readonly Color GoldEdge = Art.Hex("F4B02A");
         public static readonly Color FocusRing = Art.Hex("FFE066");
 
         public static RectTransform Rect(Transform parent, string name)
@@ -59,7 +60,7 @@ namespace PaintSort.Game
         public static Text Txt(Transform parent, string text, int size, Color col, TextAnchor anchor = TextAnchor.MiddleCenter, bool outline = true)
         {
             var r = Rect(parent, "Text"); var t = r.gameObject.AddComponent<Text>();
-            t.font = Art.GameFont; t.fontStyle = FontStyle.Bold; t.text = Loc.T(text); t.fontSize = size; t.color = col; t.alignment = anchor;
+            t.font = Art.GameFont; t.fontStyle = Art.CustomFont ? FontStyle.Normal : FontStyle.Bold; t.text = Loc.T(text); t.fontSize = size; t.color = col; t.alignment = anchor;
             t.horizontalOverflow = HorizontalWrapMode.Overflow; t.verticalOverflow = VerticalWrapMode.Overflow; t.raycastTarget = false;
             t.resizeTextForBestFit = false;
             if (outline) { var o = r.gameObject.AddComponent<Outline>(); o.effectColor = Ink; o.effectDistance = new Vector2(Mathf.Max(2, size / 14f), -Mathf.Max(2, size / 14f)); o.useGraphicAlpha = true; }
@@ -104,6 +105,31 @@ namespace PaintSort.Game
             return b;
         }
 
+        /// <summary>
+        /// Big glossy "candy" button: gold edge, dark rim, colour face with a lighter top half. The face is named "Face" so SetEnabled / SetLocked still tint it.
+        /// </summary>
+        public static Button GlossBtn(Transform parent, string label, Color face, Vector2 size, Action onClick, int fontSize = 56)
+        {
+            var root = Rect(parent, "Btn_" + label); root.sizeDelta = size;
+            var ring = Img(root, "Focus", Art.Round, FocusRing, true); Stretch(ring.rectTransform, -14, -14, -14, -14); ring.gameObject.SetActive(false);
+            var sh = Img(root, "Shadow", Art.RoundSoft, new Color(0.15f, 0.05f, 0.25f, 0.45f), true); Stretch(sh.rectTransform, -4, -16, -4, 6);
+            float e = Mathf.Max(5f, size.y * 0.06f);                                                   // edge thickness scales with the button
+            var gold = Img(root, "Outline", Art.Round, GoldEdge, true, true); Stretch(gold.rectTransform);
+            var rim = Img(root, "Rim", Art.Round, Color.Lerp(face, Color.black, 0.55f), true); Stretch(rim.rectTransform, e, e * 0.9f, e, e);
+            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, e * 1.7f, e * 1.8f, e * 1.7f, e * 1.7f);
+            var top = Img(root, "Top", Art.Round, new Color(1, 1, 1, 0.26f), true); Stretch(top.rectTransform, e * 2.1f, size.y * 0.5f, e * 2.1f, e * 2.1f);
+            var glint = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.45f), true); Stretch(glint.rectTransform, size.x * 0.12f, size.y * 0.76f, size.x * 0.12f, e * 2.6f);
+            var b = root.gameObject.AddComponent<Button>(); b.targetGraphic = gold; b.transition = Selectable.Transition.None;
+            var fx = root.gameObject.AddComponent<PressFx>(); fx.Ring = ring.gameObject;
+            if (!string.IsNullOrEmpty(label))
+            {
+                var t = Txt(root, label, fontSize, Color.white); t.rectTransform.offsetMin = new Vector2(8, e); t.rectTransform.offsetMax = new Vector2(-8, 0);
+                var ol = t.GetComponent<Outline>(); if (ol != null) { ol.effectColor = Color.Lerp(face, Color.black, 0.65f); ol.effectDistance = new Vector2(Mathf.Max(2.5f, fontSize / 11f), -Mathf.Max(2.5f, fontSize / 11f)); }
+            }
+            if (onClick != null) b.onClick.AddListener(() => { App.I?.Audio.Play("tap"); onClick(); });
+            return b;
+        }
+
         public static void SetEnabled(Button b, bool on)
         {
             b.interactable = on;
@@ -113,6 +139,8 @@ namespace PaintSort.Game
             var m = b.GetComponent<ButtonMemo>() ?? b.gameObject.AddComponent<ButtonMemo>();
             if (m.face == default) m.face = img.color;
             img.color = on ? m.face : Grey;
+            var edge = b.transform.Find("Rim") != null ? b.transform.Find("Outline")?.GetComponent<Image>() : null;      // glossy buttons: gold edge goes dull when disabled
+            if (edge != null) edge.color = on ? GoldEdge : Art.Hex("A9A3B8");
         }
 
         /// <summary>Greys a button and shows a padlock badge while keeping it clickable (so tapping it can explain when it unlocks).</summary>

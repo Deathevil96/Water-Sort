@@ -105,6 +105,8 @@ namespace PaintSort.Game
             }
         }
         static Font font;
+        /// <summary>True when Resources/Art/GameFont.ttf is in use (a real bold face), so text must not be synthetically emboldened.</summary>
+        public static bool CustomFont { get { return GameFont != null && GameFont.name == "GameFont"; } }
 
         // ---------------------------------------------------------------- raster helpers
         static Sprite Make(int w, int h, Func<float, float, Color> f, Vector4 border = default)
