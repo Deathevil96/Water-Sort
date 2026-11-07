@@ -115,6 +115,32 @@ namespace PaintSort.Game
             img.color = on ? m.face : Grey;
         }
 
+        /// <summary>Greys a button and shows a padlock badge while keeping it clickable (so tapping it can explain when it unlocks).</summary>
+        public static void SetLocked(Button b, bool locked)
+        {
+            var face = b.transform.Find("Face"); if (face == null) return;
+            var img = face.GetComponent<Image>();
+            var m = b.GetComponent<ButtonMemo>() ?? b.gameObject.AddComponent<ButtonMemo>();
+            if (m.face == default) m.face = img.color;
+            var badge = b.transform.Find("LockBadge");
+            if (locked)
+            {
+                img.color = Grey;
+                if (badge == null)
+                {
+                    var lk = Img(b.transform, "LockBadge", Art.Lock, Color.white);
+                    Place(lk.rectTransform, new Vector2(1, 0), new Vector2(0.5f, 0.5f), new Vector2(-22, 26), new Vector2(60, 60));
+                    badge = lk.transform;
+                }
+                badge.gameObject.SetActive(true);
+            }
+            else
+            {
+                img.color = m.face;
+                if (badge != null) badge.gameObject.SetActive(false);
+            }
+        }
+
         public static void SetLabel(Button b, string text) { var t = b.GetComponentInChildren<Text>(); if (t != null) t.text = text; }
 
         public static Image Dim(Transform parent, float alpha = 0.55f)
@@ -124,6 +150,15 @@ namespace PaintSort.Game
     }
 
     public sealed class ButtonMemo : MonoBehaviour { public Color face; }
+
+    /// <summary>
+    /// Pulsing highlight ring that draws attention to a newly introduced button. It lives in its own sub-canvas, so animating it every frame
+    /// only rebuilds this tiny ring and never the rest of the screen.
+    /// </summary>
+    public sealed class PulseRing : MonoBehaviour
+    {
+        void Update() { transform.localScale = Vector3.one * (1f + 0.06f * Mathf.Sin(Time.unscaledTime * 6f)); }
+    }
 
     /// <summary>Which input device the player last used. Focus rings and the board cursor are only drawn after keyboard / gamepad / D-pad input.</summary>
     public static class InputMode

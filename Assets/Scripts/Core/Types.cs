@@ -60,6 +60,9 @@ namespace PaintSort.Core
             return Difficulty.Normal;
         }
 
+        /// <summary>First level at which each power-up is available. Each is introduced on its level (see the game layer); before that the button is locked.</summary>
+        public const int UndoUnlockLevel = 5, ShuffleUnlockLevel = 10, ExtraPotUnlockLevel = 15;
+
         public static string Label(Difficulty d) => d == Difficulty.SuperHard ? "Super Hard" : d == Difficulty.Hard ? "Hard" : "Normal";
     }
 }

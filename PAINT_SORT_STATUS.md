@@ -1,4 +1,4 @@
-# Paint Sort — Implementation Status
+# Paint Magic Sort — Implementation Status
 
 ## How to run
 1. Open the project in Unity 6000.6, open `Assets/Scenes/SampleScene`, press **Play**. The whole game builds itself from code (`App.Boot`).
@@ -14,18 +14,28 @@ Layout is responsive (`App.Layout.cs`): the canvas scales so the logical size is
 
 ## Levels
 **5,000** deterministic levels, decoded lazily. 500 Hard, 500 Super Hard.
-- Levels 1-4 are hand-designed tutorials (one mechanic each); level 5 onward are generated.
+- Levels 1-4 are hand-designed tutorials (one mechanic each) and are **proven impossible to get stuck on**: an exhaustive search (`DeadEndAnalysis`) checks that every reachable board can still be won, so no power-up is ever needed. (The first version of level 2 failed this: 26 of its 42 reachable boards were dead ends. Fixed by giving it two spare pots; a unit test now guards all four.) Level 5 onward are generated.
+- **No difficulty spikes early:** Hard / Super Hard levels keep their labels but play like Normal ones until level 25, then ramp up; they only lose a spare pot from level 60. Measured casual-bot win rate for levels 1-40 is 80-100% except three levels in the 70s/50s; a unit test requires >= 60% for levels 1-30.
 - Difficulty is shaped by a measurable "careful player" bot (`DifficultyProbe`): for every generated level the generator makes several solvable candidates and picks the friendliest for Normal, a harder one for Hard and the hardest for Super Hard. Severity ramps from gentle (level ~10) to a wall (level 200+). Measured bot progress (share of colours sorted before getting stuck): levels 51-150 Normal 75% / Hard 18% / Super Hard 3%; levels 151-400 Normal 41% / Hard 4% / Super Hard 3%.
 - Past level 750 there are seven "flavours" (mystery-heavy, cloth-heavy, light, plus an easier breather every 10th Normal level) so late levels differ in more than size.
 - Audit (witness replay + mechanic checks + independent solver): 5000 audited, 0 failed, 1 solver-inconclusive (the second solver hit its search budget; its saved solution replays correctly). Regenerate with the menu item or `harness gen`.
 
-## Features added in this pass
+## Power-up progression
+Undo unlocks at level 5, Shuffle at 10, + Pot at 15 (`Progression.*UnlockLevel`). Before that the button is greyed with a padlock (paid ones show "Lv 10" / "Lv 15" instead of a price) and tapping it says when it unlocks. On its level the first time, a popup introduces the power-up; Shuffle and + Pot also grant exactly one FREE token (once). The new button pulses until you use it. The stuck/rescue prompt only offers power-ups you have already unlocked. Replaying an earlier level after unlocking keeps them unlocked.
+
+## Touch / blocker audit
+- Root cause of the reported "touch issues on multiple buttons" (found with a real event-system raycast): a performance change had removed the **root canvas raycaster**. Unity only sorts hits from different nested canvases by depth when they share a root raycaster, so overlapping canvases were ordered arbitrarily and a tap meant for a popup button could land on a button behind it. Fixed (root raycaster restored, with a comment explaining why it must stay).
+- Two more invisible blockers removed: the tutorial hint box (clickable, covered the bottom of the board for 7-10 s; now ignores taps and hides on the first tap) and the shuffle-mode bar (covered the top row of pots; it now replaces the power-up row while shuffling).
+- New PlayMode tests raycast through the real event system at the centre of **every button and pot** on the menu, on levels 1/2/4/35, in shuffle mode on boards up to level 700, inside every popup, and check popups swallow taps meant for the board behind them.
+- Not covered: the audit ran at the test runner's window shape and one portrait size; landscape / TV were verified visually and by layout review but not by raycast (the Editor's Device Simulator prevented switching sizes). Real-finger testing on a phone is still needed.
+
+## Features added in the previous pass
 Resume after restart (board saved after every move, also mid-pour) · level select (paged grid, replay any unlocked level) · screen fades · win-wave hop on the board · procedural background music loop (toggle in Settings) · graded Android haptics · localization (English + Spanish; Settings button) · popups pop in.
 
 ## Tests (all run inside Unity)
-- 32 EditMode tests (rules, economy, resume serialization, tutorials, difficulty ordering, generator determinism).
-- 10 PlayMode tests that drive the real game end to end: boot, complete level 1 (reward, unlock), no double reward on replay, resume after leave, leave during a pour, restart, duplicate life consumption, undo, level select, save/reload. They use an isolated temp save and never touch the real one. The PlayMode suite found and fixed a real bug (pour animation kept running on destroyed pots when the board was torn down mid-pour).
-- A real Windows release build succeeds (0 errors, ~36 s, 102 MB) and runs 15 s without exceptions; the release assembly contains no debug menu or fake-purchase code.
+- 34 EditMode tests (rules, economy, resume serialization, tutorials, dead-end freedom of the opening levels, easy start, difficulty ordering, generator determinism).
+- 20 PlayMode tests that drive the real game end to end: boot, complete level 1 (reward, unlock), no double reward on replay, resume after leave, leave during a pour, restart, duplicate life consumption, undo, level select, save/reload, power-up locks / intro popups / free tokens, and the pointer-reachability audits above. They use an isolated temp save and never touch the real one. The PlayMode suite found and fixed a real bug (pour animation kept running on destroyed pots when the board was torn down mid-pour).
+- Android: a development APK builds (about 3 minutes, 74 MB, IL2CPP, ARM64 + ARMv7) but has not been run on a phone. A real Windows release build succeeds (0 errors, ~36 s, 102 MB) and runs 15 s without exceptions; the release assembly contains no debug menu or fake-purchase code.
 
 ## Performance work
 - Idle UI no longer touches any transform; measured idle rebuilds: 1 tiny graphic every 0.5 s. Separate canvases, fewer raycasters, pooled particles, no per-frame allocations in the pour animation, write-behind saving, capped ledger, per-pixel colour parsing removed from art generation.

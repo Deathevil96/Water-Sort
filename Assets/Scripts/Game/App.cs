@@ -9,6 +9,8 @@ using UnityEngine.UI;
 
 namespace PaintSort.Game
 {
+    public enum PowerUp { Undo, Shuffle, ExtraPot }
+
     /// <summary>Game flow + services owner. The only place that mutates persistent progress. Puzzle rules live in PaintSort.Core.</summary>
     public sealed partial class App : MonoBehaviour
     {
@@ -182,7 +184,8 @@ namespace PaintSort.Game
             RefreshHud(); SetShuffleBar(false);
             Analytics.Event("level_started", id.ToString());
             Log.I("LEVEL", "Started level " + id + " seed " + CurrentDef.Seed + " diff " + CurrentDef.Difficulty + " mech H" + CurrentDef.HiddenCount + " C" + CurrentDef.CoveredCount);
-            if (restored == null) ShowLevelHints(id); else { hintBar.gameObject.SetActive(false); Toast("Welcome back! Your board was saved."); }
+            ClearPowerHighlight();
+            if (restored == null) { ShowLevelHints(id); MaybeIntroducePowerUp(id); } else { hintBar.gameObject.SetActive(false); Toast("Welcome back! Your board was saved."); }
             Persist();
         }
 
@@ -216,7 +219,9 @@ namespace PaintSort.Game
             {
                 if (pot.Covered) { Audio.Play("invalid"); Board.Shake(i); Toast("Covered! Finish a colour to uncover it."); return; }
                 if (pot.IsEmpty || !State.IsAccessible(i)) { Audio.Play("invalid"); Board.Shake(i); return; }
-                selected = i; Board.SetSelected(i, true); Audio.Play("select"); return;
+                selected = i; Board.SetSelected(i, true); Audio.Play("select");
+                if (hintBar.gameObject.activeSelf) hintBar.gameObject.SetActive(false);      // the player has understood: get the hint out of the way
+                return;
             }
             if (i == selected) { Board.SetSelected(i, false); selected = -1; Audio.Play("tap"); return; }
 
@@ -300,13 +305,26 @@ namespace PaintSort.Game
         }
 
         // ------------------------------------------------------------------ power-ups
+        public static int UnlockLevel(PowerUp p) => p == PowerUp.Undo ? Progression.UndoUnlockLevel : p == PowerUp.Shuffle ? Progression.ShuffleUnlockLevel : Progression.ExtraPotUnlockLevel;
+
+        /// <summary>A power-up is available once the player has reached its level (so replaying an early level later does not lock it again).</summary>
+        public bool IsUnlocked(PowerUp p) => Mathf.Max(D.highestUnlocked, inGame ? CurrentLevel : 0) >= UnlockLevel(p);
+
+        bool Locked(PowerUp p, string name)
+        {
+            if (IsUnlocked(p)) return false;
+            Toast(Loc.F("{0} unlocks at level {1}", Loc.T(name), UnlockLevel(p))); Audio.Play("invalid");
+            return true;
+        }
+
         public void OnUndo()
         {
             if (!CanAct()) return;
+            if (Locked(PowerUp.Undo, "Undo")) return;
             if (!State.CanUndo) { Toast("Nothing to undo yet."); Audio.Play("invalid"); return; }
             if (Cfg.UndoPrice > 0 && !Wallet.TrySpend(Cfg.UndoPrice, "undo", CurrentLevel)) { OpenInsufficient("Undo", Cfg.UndoPrice, null); return; }
             if (selected >= 0) { Board.SetSelected(selected, false); selected = -1; }
-            State.Undo(); Board.RenderAll(); Audio.Play("tap"); Analytics.Event("undo_used"); SaveBoard(); RefreshHud();
+            State.Undo(); Board.RenderAll(); Audio.Play("tap"); Analytics.Event("undo_used"); OnPowerUsed(PowerUp.Undo); SaveBoard(); RefreshHud();
             ShowOnce("undo", "Undo rewinds your last pour — it's free, use it as much as you like!");
         }
 
@@ -315,6 +333,7 @@ namespace PaintSort.Game
         public void OnShuffleButton()
         {
             if (!CanAct()) return;
+            if (Locked(PowerUp.Shuffle, "Shuffle")) return;
             if (shuffleMode) { SetShuffleBar(false); return; }
             int eligible = 0; for (int i = 0; i < State.Pots.Count; i++) if (TargetedShuffle.IsEligible(State, i) && !State.Pots[i].IsEmpty) eligible++;
             if (eligible < 2) { Toast("Need at least two containers with paint to shuffle."); return; }
@@ -338,7 +357,7 @@ namespace PaintSort.Game
             Board.RenderAll();
             foreach (var i in sel) { Board.Shake(i); Fx.Burst(Board.Root, Board.Pots[i].RestPos, Art.Paint[UnityEngine.Random.Range(0, Art.Paint.Length)], 6, 300, 24); }
             Audio.Play("reveal");
-            Analytics.Event("shuffle_used"); Analytics.Event("gold_spent", free ? "0" : Cfg.ShufflePrice.ToString()); SaveBoard();
+            OnPowerUsed(PowerUp.Shuffle); Analytics.Event("shuffle_used"); Analytics.Event("gold_spent", free ? "0" : Cfg.ShufflePrice.ToString()); SaveBoard();
             Toast(free ? "Shuffled! (free ad reward used)" : "Shuffled! -" + Cfg.ShufflePrice + " Gold");
             Persist();
         }
@@ -346,6 +365,7 @@ namespace PaintSort.Game
         public void OnExtraPotButton()
         {
             if (!CanAct()) return;
+            if (Locked(PowerUp.ExtraPot, "Extra pot")) return;
             if (extrasAdded >= 3) { Toast("That's the maximum number of extra containers."); return; }
             if (D.freeExtraPotTokens > 0) { ConfirmAddPot(true); return; }
             if (!Wallet.CanAfford(Cfg.ExtraContainerPrice)) { OpenInsufficient("Extra Container", Cfg.ExtraContainerPrice, () => { D.freeExtraPotTokens++; Persist(); ConfirmAddPot(true); }); return; }
@@ -359,7 +379,7 @@ namespace PaintSort.Game
             State.AddEmptyPot(); Board.AddPot(); extrasAdded++;               // charge only after the pot actually exists
             if (free) D.freeExtraPotTokens--;
             else Wallet.TrySpend(Cfg.ExtraContainerPrice, "extra_container", CurrentLevel, "extra_" + Guid.NewGuid().ToString("N"));
-            SaveBoard(); Audio.Play("complete"); Analytics.Event("extra_container_used"); Toast(free ? "Extra container added (free)!" : "Extra container added! -" + Cfg.ExtraContainerPrice + " Gold");
+            OnPowerUsed(PowerUp.ExtraPot); SaveBoard(); Audio.Play("complete"); Analytics.Event("extra_container_used"); Toast(free ? "Extra container added (free)!" : "Extra container added! -" + Cfg.ExtraContainerPrice + " Gold");
             Persist(); RefreshHud();
         }
 

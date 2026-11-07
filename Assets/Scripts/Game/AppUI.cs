@@ -34,7 +34,10 @@ namespace PaintSort.Game
             var cgo = new GameObject("PaintSortCanvas"); cgo.transform.SetParent(transform, false);
             canvas = cgo.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             scaler = cgo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            // No raycaster on the root: it only holds the backdrop. Every GraphicRaycaster costs per-frame work, so only canvases with clickable UI get one.
+            // REQUIRED: the root raycaster. Unity only sorts hits from different (nested) canvases by depth when they share a common root raycaster;
+            // without it overlapping canvases are ordered arbitrarily and a tap meant for a popup can land on a button behind it.
+            // It is cheap (the root canvas only holds the non-interactive backdrop). Covered by the pointer tests in GameFlowTests.
+            cgo.AddComponent<GraphicRaycaster>();
             root = (RectTransform)cgo.transform;
             FxHost.Create(root);
 
@@ -225,20 +228,20 @@ namespace PaintSort.Game
             // shuffle selection bar
             var sbInner = UI.Card(gameScreen, Art.Hex("FFFFFF"), new Vector2(980, 230), 8);
             shuffleBar = (RectTransform)sbInner.parent;
-            shuffleInfo = UI.Txt(sbInner, "Select the containers to shuffle.", 40, Color.white); shuffleInfo.rectTransform.anchorMin = new Vector2(0, 0.5f); shuffleInfo.rectTransform.offsetMax = new Vector2(0, -6);
-            var cancel = UI.Btn(sbInner, "Cancel", UI.Grey, new Vector2(300, 90), () => SetShuffleBar(false));
-            UI.Place((RectTransform)cancel.transform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(40, 18), new Vector2(300, 90));
-            shuffleConfirmBtn = UI.Btn(sbInner, "Shuffle", UI.Purple, new Vector2(520, 90), ConfirmShuffle, Art.Coin, 40);
-            UI.Place((RectTransform)shuffleConfirmBtn.transform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-40, 18), new Vector2(520, 90));
+            // The shuffle bar takes the power bar's place while shuffling (see Relayout / SetShuffleBar), so it never covers any pot.
+            shuffleInfo = UI.Txt(sbInner, "Select the containers to shuffle.", 36, Color.white); shuffleInfo.rectTransform.anchorMin = new Vector2(0, 0.42f); shuffleInfo.rectTransform.offsetMax = new Vector2(0, -6);
+            var cancel = UI.Btn(sbInner, "Cancel", UI.Grey, new Vector2(300, 90), () => SetShuffleBar(false), null, 36);
+            var cr = (RectTransform)cancel.transform; cr.anchorMin = new Vector2(0.03f, 0); cr.anchorMax = new Vector2(0.39f, 0); cr.offsetMin = new Vector2(0, 14); cr.offsetMax = new Vector2(0, 104);
+            shuffleConfirmBtn = UI.Btn(sbInner, "Shuffle", UI.Purple, new Vector2(520, 90), ConfirmShuffle, Art.Coin, 36);
+            var fr = (RectTransform)shuffleConfirmBtn.transform; fr.anchorMin = new Vector2(0.43f, 0); fr.anchorMax = new Vector2(0.97f, 0); fr.offsetMin = new Vector2(0, 14); fr.offsetMax = new Vector2(0, 104);
             shuffleBar.gameObject.SetActive(false);
 
             // tutorial hint bar
             var hInner = UI.Card(gameScreen, Art.Hex("FFF7C2"), new Vector2(980, 170), 6);
             hintBar = (RectTransform)hInner.parent;
             hintText = UI.Txt(hInner, "", 34, UI.Ink, TextAnchor.MiddleCenter, false); hintText.horizontalOverflow = HorizontalWrapMode.Wrap; hintText.rectTransform.offsetMin = new Vector2(20, 0); hintText.rectTransform.offsetMax = new Vector2(-20, 0);
-            var hbtn = hintBar.gameObject.AddComponent<Button>(); hbtn.onClick.AddListener(() => hintBar.gameObject.SetActive(false)); hbtn.transition = Selectable.Transition.None;
-            hbtn.navigation = new Navigation { mode = Navigation.Mode.None };
-            hintBar.GetComponentInChildren<Image>().raycastTarget = true;
+            // Hints must never block taps: the pots underneath stay tappable, and the hint hides itself on the first tap (see TapPot) or after a few seconds.
+            foreach (var g in hintBar.GetComponentsInChildren<Graphic>(true)) g.raycastTarget = false;
             hintBar.gameObject.SetActive(false);
         }
 
@@ -293,9 +296,7 @@ namespace PaintSort.Game
                 levelTitle.text = Loc.F("Level {0}", CurrentLevel); movesText.text = Loc.F("Moves {0}", State.MoveCount);
                 diffText.text = Loc.T(Progression.Label(diff));
                 diffBadge.color = diff == Difficulty.SuperHard ? UI.Red : diff == Difficulty.Hard ? UI.Orange : Art.Hex("35C6C5");
-                UI.SetEnabled(undoBtn, State.CanUndo);
-                shufflePrice.text = D.freeShuffleTokens > 0 ? "FREE" : Cfg.ShufflePrice.ToString("N0");
-                potPrice.text = D.freeExtraPotTokens > 0 ? "FREE" : Cfg.ExtraContainerPrice.ToString("N0");
+                ApplyPowerStates();
                 UpdateShuffleBar();
             }
         }
@@ -315,7 +316,7 @@ namespace PaintSort.Game
         {
             shuffleMode = on;
             if (!on) { foreach (var i in shuffleMarks) Board.SetMarked(i, false); shuffleMarks.Clear(); }
-            shuffleBar.gameObject.SetActive(on);
+            shuffleBar.gameObject.SetActive(on); powerBar.gameObject.SetActive(!on);
             if (on) { if (selected >= 0) { Board.SetSelected(selected, false); selected = -1; } }
             UpdateShuffleBar();
         }
@@ -366,7 +367,6 @@ namespace PaintSort.Game
                 case 2: ShowHint("You can pour onto the same colour, or into an empty pot. Sort every colour into its own pot.", 9); break;
                 case 3: ShowHint("All the matching colours on top move together in one pour.", 9); break;
                 case 4: ShowHint("Each pot holds 4 layers. If it can't fit everything, only part of it pours.", 9); break;
-                case 5: ShowHint("This is a Hard level (orange badge) — take your time. Undo is free!", 8); break;
                 case 21: ShowHint("Dark ? layers hide a secret colour. Pour away what's on top to reveal it!", 10); break;
                 case 31: ShowHint("Cloth-covered pots can't be used yet. Complete one colour to uncover one!", 10); break;
                 case 100: ShowHint("You unlocked the Leaderboard! Find it on the main menu.", 8); break;
@@ -454,13 +454,20 @@ namespace PaintSort.Game
         {
             var c = Panel("No more moves!", new Vector2(940, 1120), out var go, false, UI.Red);
             Line(c, "The board is stuck. Pick a helper to keep painting.", 40, UI.Ink, 840, 110);
-            if (State.CanUndo) PopBtn(c, "Undo (free)", UI.Blue, 800, 120, OnUndo, go, Art.Undo);
-            bool potOk = D.freeExtraPotTokens > 0 || Wallet.CanAfford(Cfg.ExtraContainerPrice);
-            if (potOk) PopBtn(c, "Add Container   " + Cfg.ExtraContainerPrice, UI.Green, 800, 120, OnExtraPotButton, go, Art.Plus);
-            else AdOrDisabled(c, go, "Free Container (ad)", () => { D.freeExtraPotTokens++; ConfirmAddPot(true); });
-            bool shOk = D.freeShuffleTokens > 0 || Wallet.CanAfford(Cfg.ShufflePrice);
-            if (shOk) PopBtn(c, "Targeted Shuffle   " + Cfg.ShufflePrice, UI.Purple, 800, 120, OnShuffleButton, go, Art.Shuffle);
-            else AdOrDisabled(c, go, "Free Shuffle (ad)", () => { D.freeShuffleTokens++; Persist(); OnShuffleButton(); });
+            // only offer helpers the player has already been introduced to
+            if (State.CanUndo && IsUnlocked(PowerUp.Undo)) PopBtn(c, "Undo (free)", UI.Blue, 800, 120, OnUndo, go, Art.Undo);
+            if (IsUnlocked(PowerUp.ExtraPot))
+            {
+                bool potOk = D.freeExtraPotTokens > 0 || Wallet.CanAfford(Cfg.ExtraContainerPrice);
+                if (potOk) PopBtn(c, "Add Container   " + Cfg.ExtraContainerPrice, UI.Green, 800, 120, OnExtraPotButton, go, Art.Plus);
+                else AdOrDisabled(c, go, "Free Container (ad)", () => { D.freeExtraPotTokens++; ConfirmAddPot(true); });
+            }
+            if (IsUnlocked(PowerUp.Shuffle))
+            {
+                bool shOk = D.freeShuffleTokens > 0 || Wallet.CanAfford(Cfg.ShufflePrice);
+                if (shOk) PopBtn(c, "Targeted Shuffle   " + Cfg.ShufflePrice, UI.Purple, 800, 120, OnShuffleButton, go, Art.Shuffle);
+                else AdOrDisabled(c, go, "Free Shuffle (ad)", () => { D.freeShuffleTokens++; Persist(); OnShuffleButton(); });
+            }
             if (Cfg.ShopEnabled) PopBtn(c, "Get Gold", UI.Orange, 800, 110, OpenShop, go, Art.Coin);
             PopBtn(c, "Not now", UI.Grey, 800, 110, OpenLeaveConfirm, go);
         }

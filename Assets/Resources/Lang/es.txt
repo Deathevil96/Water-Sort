@@ -98,3 +98,15 @@ Dark ? layers hide a secret colour. Pour away what's on top to reveal it!	Las ca
 Cloth-covered pots can't be used yet. Complete one colour to uncover one!	Los botes tapados con tela aún no se pueden usar. ¡Completa un color para destapar uno!
 You unlocked the Leaderboard! Find it on the main menu.	¡Has desbloqueado la clasificación! Búscala en el menú principal.
 Undo rewinds your last pour — it's free, use it as much as you like!	Deshacer revierte tu último vertido: es gratis, ¡úsalo cuanto quieras!
+# --- power-up progression
+FREE	GRATIS
+Lv {0}	Nv {0}
+Undo	Deshacer
+Extra pot	Bote extra
+{0} unlocks at level {1}	{0} se desbloquea en el nivel {1}
+New power-up: {0}!	¡Nueva ayuda: {0}!
+Got it!	¡Entendido!
+Costs {0} Gold. Here is a FREE one to try!	Cuesta {0} de oro. ¡Aquí tienes uno GRATIS para probar!
+Made a mistake? Undo takes back your last pour. It is always free, so use it as much as you like!	¿Te equivocaste? Deshacer revierte tu último vertido. Siempre es gratis, ¡úsalo cuanto quieras!
+Stuck? Pick two or more pots and Shuffle mixes their paint into a fresh arrangement that can still be finished.	¿Atascado? Elige dos o más botes y Mezclar reorganiza su pintura de una forma que aún se puede terminar.
+Out of room? + Pot adds one extra empty pot until this level ends.	¿Sin espacio? + Bote añade un bote vacío extra hasta que termine este nivel.

@@ -315,5 +315,29 @@ namespace PaintSort.Tests
             Assert.Greater(n, 5); Assert.Greater(h, 5);
             Assert.Greater(normal / n, superHard / h, "Super Hard levels should be measurably harder to play than Normal ones");
         }
+
+        // ------------------------------------------------------------------ opening levels must be easy and impossible to get stuck on
+        [Test]
+        public void OpeningLevelsCanNeverDeadEnd()
+        {
+            for (int id = 1; id <= 4; id++)
+            {
+                Assert.IsTrue(TutorialLevels.TryCreate(id, out var lvl));
+                var r = DeadEndAnalysis.Analyse(lvl);
+                Assert.IsTrue(r.Complete, "analysis budget exceeded for tutorial " + id);
+                Assert.AreEqual(0, r.DeadEnds, "tutorial " + id + " has " + r.DeadEnds + " of " + r.Positions + " positions that cannot be won (no power-up exists yet)");
+            }
+        }
+
+        [Test]
+        public void TheFirstThirtyLevelsAreEasyForACasualPlayer()
+        {
+            for (int id = 1; id <= 30; id++)
+            {
+                var lvl = LevelGenerator.Generate(id).Level;
+                float win = DifficultyProbe.CasualWinRate(lvl, 120, id);
+                Assert.GreaterOrEqual(win, 0.6f, "level " + id + " (" + lvl.Difficulty + ") is too hard for a casual player: " + (int)(win * 100) + "% win rate");
+            }
+        }
     }
 }

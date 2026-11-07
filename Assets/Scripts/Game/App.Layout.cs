@@ -124,6 +124,9 @@ namespace PaintSort.Game
 
             if (!IsLandscape) LayoutPortrait(W, H); else LayoutLandscape(W, H);
             LayoutPowerSlots(IsLandscape);
+            // the shuffle bar takes the power bar's exact place while shuffling, so it can never cover a pot
+            shuffleBar.anchorMin = powerBar.anchorMin; shuffleBar.anchorMax = powerBar.anchorMax; shuffleBar.pivot = powerBar.pivot;
+            shuffleBar.anchoredPosition = powerBar.anchoredPosition; shuffleBar.sizeDelta = powerBar.sizeDelta;
             if (Board != null) Board.SetArea(boardSize);
 
             foreach (var p in popups) if (p != null) FitPopup((RectTransform)p.transform.GetChild(1));
@@ -136,7 +139,6 @@ namespace PaintSort.Game
             SetBoardRect(new Vector2(10, bannerH + 330), new Vector2(-10, -280));
             UI.Place(powerBar, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, bannerH + 20), new Vector2(1040, 290));
             UI.Place(hintBar, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, bannerH + 320), new Vector2(980, 170));
-            UI.Place(shuffleBar, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -270), new Vector2(980, 230));
             UI.Place(toastCard, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, bannerH + 350), new Vector2(940, 130));
 
             // main menu: hero (logo + pots) in the upper part, actions in the lower part; both stay centred on wide tablets
@@ -152,7 +154,6 @@ namespace PaintSort.Game
             SetBoardRect(new Vector2(20, bannerH + 20), new Vector2(-(SidePanelWidth + 20), -(TopBarMargin + TopBarHeight + 14)));
             UI.Place(powerBar, new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-20, (bannerH - 120f) * 0.5f), new Vector2(540, 620));
             UI.Place(hintBar, new Vector2(0, 0), new Vector2(0.5f, 0), new Vector2(boardCenterX, bannerH + 20), new Vector2(Mathf.Min(1100, boardW - 20), 150));
-            UI.Place(shuffleBar, new Vector2(0, 1), new Vector2(0.5f, 1), new Vector2(boardCenterX, -(TopBarMargin + TopBarHeight + 24)), new Vector2(980, 230));
             UI.Place(toastCard, new Vector2(0, 0), new Vector2(0.5f, 0), new Vector2(boardCenterX, bannerH + 40), new Vector2(Mathf.Min(940, boardW - 20), 130));
 
             // main menu: two columns, each scaled to fit its half

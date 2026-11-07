@@ -38,6 +38,9 @@ namespace PaintSort.Core
             new Row{From=751, To=100000, ColMin=10, ColMax=11},
         };
 
+        /// <summary>Hard / Super Hard boards only lose a spare pot from this level on; the opening levels stay roomy so they are easy to finish.</summary>
+        const int TightBoardsFrom = 60;
+
         public static LevelSpec For(int level)
         {
             Row r = Rows[Rows.Length - 1];
@@ -47,7 +50,7 @@ namespace PaintSort.Core
             int colors = r.ColMin + Math.Min(span2 - 1, (level - r.From) * span2 / Math.Max(1, span));
             var diff = Progression.DifficultyFor(level);
             var spec = new LevelSpec { Colors = colors, Empties = 2 };
-            if (level >= 11 && diff != Difficulty.Normal && colors <= 9) spec.Empties = 1; // fewer free containers on Hard / Super Hard
+            if (level >= TightBoardsFrom && diff != Difficulty.Normal && colors <= 9) spec.Empties = 1; // fewer free containers on Hard / Super Hard (not in the opening levels)
             if (level >= Progression.HiddenFromLevel)
             {
                 if (level == 21) spec.Hidden = 1;
@@ -90,8 +93,9 @@ namespace PaintSort.Core
         // Progress = share of colours a careful bot has sorted when it gets stuck (see DifficultyProbe); lower means harder to play.
         const int NormalCandidates = 3, HardCandidates = 8, SuperHardCandidates = 16, ProbeTrials = 10;
         // Pick position among candidates sorted hardest-first, as a fraction of the pool: 0 = the very hardest, 1 = the friendliest. Normal always takes the friendliest.
-        const int RampLevels = 200;
-        const float HardStartQuantile = 0.7f, HardEndQuantile = 0.25f, SuperHardStartQuantile = 0.4f;
+        // No difficulty spike in the opening levels: severity stays 0 (the friendliest candidate, like a Normal level) until GraceLevels, then ramps up.
+        const int GraceLevels = 25, RampLevels = 225;
+        const float HardStartQuantile = 1f, HardEndQuantile = 0.25f, SuperHardStartQuantile = 1f;
         static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
         sealed class Candidate { public LevelDefinition Level; public int Moves, Explored; public float Progress; }
@@ -139,7 +143,7 @@ namespace PaintSort.Core
             // hardest first (lowest progress; more solver effort breaks ties)
             pool.Sort((x, y) => x.Progress != y.Progress ? x.Progress.CompareTo(y.Progress) : y.Explored.CompareTo(x.Explored));
             // severity ramps up with the level number so a "Hard" level at level 15 is a gentle bump and one at level 500 is a real wall
-            float severity = Math.Min(1f, Math.Max(0f, (levelId - 5) / (float)RampLevels));
+            float severity = Math.Min(1f, Math.Max(0f, (levelId - GraceLevels) / (float)RampLevels));
             int pick = diff == Difficulty.SuperHard ? (int)(pool.Count * Lerp(SuperHardStartQuantile, 0f, severity))
                      : diff == Difficulty.Hard ? (int)(pool.Count * Lerp(HardStartQuantile, HardEndQuantile, severity))
                      : pool.Count - 1;
