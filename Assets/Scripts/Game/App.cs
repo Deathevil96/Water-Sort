@@ -182,7 +182,7 @@ namespace PaintSort.Game
             // every new attempt (first start, retry, restart) gets the same layout with different paint colours; a resumed board keeps its own colours
             CurrentDef = restored != null ? original : LevelVariant.Make(original, new System.Random());
             State = restored ?? new PuzzleState(CurrentDef);
-            selected = -1; attemptEnded = false; winHandled = false; shuffleMode = false; shuffleMarks.Clear();
+            ClearMoveQueue(); selected = -1; attemptEnded = false; winHandled = false; shuffleMode = false; shuffleMarks.Clear();
             extrasAdded = 0; foreach (var p in State.Pots) if (p.Extra) extrasAdded++;
             inGame = true; cursor = 0;
             ShowGame();
@@ -203,15 +203,19 @@ namespace PaintSort.Game
 
         public void LeaveToMenu()
         {
-            inGame = false; Board.Clear(); CloseAllPopups(); ShowMenu(); Persist();
+            inGame = false; ClearMoveQueue(); Board.Clear(); CloseAllPopups(); ShowMenu(); Persist();
         }
 
         // ------------------------------------------------------------------ input
         void TapPot(int i)
         {
-            if (!inGame || State == null || attemptEnded || winHandled || Board.Busy || PopupOpen) return;
+            if (!inGame || State == null || attemptEnded || winHandled || PopupOpen) return;
             if (i < 0 || i >= State.Pots.Count) return;
-            var pot = State.Pots[i];
+            bool inFlight = Animating;                                    // a pour is playing: taps still count, valid moves are queued
+            if (inFlight && shuffleMode) return;
+            var view = inFlight ? (shadow ?? (shadow = State.CloneForSearch())) : State;
+            if (!inFlight) shadow = null;
+            var pot = view.Pots[i];
 
             if (shuffleMode)
             {
@@ -224,40 +228,43 @@ namespace PaintSort.Game
             if (selected < 0)
             {
                 if (pot.Covered) { Audio.Play("invalid"); Board.Shake(i); Toast("Covered! Finish the colour shown on the cloth."); return; }
-                if (pot.IsEmpty || !State.IsAccessible(i)) { Audio.Play("invalid"); Board.Shake(i); return; }
-                selected = i; Board.SetSelected(i, true); Audio.Play("select");
+                if (pot.IsEmpty || !view.IsAccessible(i)) { Audio.Play("invalid"); Board.Shake(i); return; }
+                selected = i; MarkSelected(i); Audio.Play("select");
                 if (hintBar.gameObject.activeSelf) hintBar.gameObject.SetActive(false);      // the player has understood: get the hint out of the way
                 return;
             }
             if (i == selected) { Board.SetSelected(i, false); selected = -1; Audio.Play("tap"); return; }
 
-            var check = State.Check(selected, i);
-            if (check == MoveFailure.None) { DoMove(selected, i); return; }
+            var check = view.Check(selected, i);
+            if (check == MoveFailure.None) { if (inFlight) EnqueueMove(view, selected, i); else DoMove(selected, i); return; }
             // tapping another non-empty, usable pot that cannot receive the paint simply changes the source
             if (check == MoveFailure.ColorMismatch)
             {
-                Board.SetSelected(selected, false); selected = i; Board.SetSelected(i, true); Audio.Play("select"); return;
+                Board.SetSelected(selected, false); selected = i; MarkSelected(i); Audio.Play("select"); return;
             }
-            State.TryMove(selected, i);                 // registers as an invalid move (state unchanged)
+            view.TryMove(selected, i);                  // registers as an invalid move (state unchanged)
             Audio.Play("invalid"); Audio.Vibrate(); Board.Shake(i, selected);
             Analytics.Event("move_invalid", check.ToString());
         }
 
-        void DoMove(int from, int to)
+        bool DoMove(int from, int to)
         {
             var before = BoardView.UnitsOf(State.Pots[from]); var dstBefore = BoardView.UnitsOf(State.Pots[to]);
             var r = State.TryMove(from, to);
-            if (!r.Valid) { Board.Shake(to, from); Audio.Play("invalid"); return; }
+            if (!r.Valid) { Board.Shake(to, from); Audio.Play("invalid"); return false; }
             Board.SetSelected(from, false); selected = -1;
             if (!r.Won) SaveBoard();          // the logical state is already final, so it is safe to save before the animation plays
             Log.I("MOVE", from + ">" + to + " x" + r.Amount + (r.CompletedPot >= 0 ? " complete" : "") + (r.UnlockedPots.Count > 0 ? " unlock" : ""));
             Board.PlayMove(r, before, dstBefore, () => AfterMove(r));
             RefreshHud();
+            return true;
         }
 
         void AfterMove(MoveResult r)
         {
             RefreshHud();
+            if (!r.Won && PlayNextQueued()) return;                       // the next queued pour starts right away
+            if (selected >= 0) MarkSelected(selected);                    // a pot picked while the last pour was playing lifts now that it has settled
             if (r.Won) { StartCoroutine(HandleWin()); return; }
             if (!State.HasAnyMove()) StartCoroutine(Delay(0.35f, () => { if (!attemptEnded && !winHandled && !PopupOpen) OpenStuckPrompt(); }));
         }
@@ -334,7 +341,7 @@ namespace PaintSort.Game
             ShowOnce("undo", "Undo rewinds your last pour — it's free, use it as much as you like!");
         }
 
-        bool CanAct() => inGame && State != null && !attemptEnded && !winHandled && !Board.Busy && !PopupOpen;
+        bool CanAct() => inGame && State != null && !attemptEnded && !winHandled && !Animating && !PopupOpen;
 
         public void OnShuffleButton()
         {
@@ -392,7 +399,7 @@ namespace PaintSort.Game
         // ------------------------------------------------------------------ fail / lives flow (two confirmations)
         public void OnRestartButton()
         {
-            if (!inGame || Board.Busy || PopupOpen) return;
+            if (!inGame || Animating || PopupOpen) return;
             if (winHandled) return;
             if (!State.HasAnyMove()) { OpenLeaveConfirm(); return; }              // abandoning a dead board → life flow
             if (State.MoveCount == 0) { RestartLevel(); return; }
@@ -402,7 +409,7 @@ namespace PaintSort.Game
         public void OnBackButton()
         {
             if (!inGame) return;
-            if (Board.Busy || PopupOpen) return;
+            if (Animating || PopupOpen) return;
             if (winHandled) { LeaveToMenu(); return; }
             if (!State.HasAnyMove()) { OpenLeaveConfirm(); return; }
             if (State.MoveCount == 0) { ClearResume(); LeaveToMenu(); return; }

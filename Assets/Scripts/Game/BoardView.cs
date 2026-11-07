@@ -169,6 +169,8 @@ namespace PaintSort.Game
         PuzzleState state;
         Image stream, streamGloss;
         public bool Busy { get; private set; }
+        /// <summary>Index of the pot currently pouring (it is moving, so it cannot be picked), or -1.</summary>
+        public int PouringFrom { get; private set; } = -1;
         Vector2 area;
         readonly List<UnitVis> scratchSrc = new List<UnitVis>(8), scratchDst = new List<UnitVis>(8);   // reused every animation frame (no per-frame allocation)
         const float RowSwitchGain = 1.12f;                                                             // an extra row of pots must be at least 12% larger to win
@@ -203,11 +205,11 @@ namespace PaintSort.Game
             return best;
         }
 
-        public void Tapped(int i) { if (!Busy) PotTappedCallback?.Invoke(i); }
+        public void Tapped(int i) { PotTappedCallback?.Invoke(i); }
 
         public void Clear()
         {
-            StopAllCoroutines(); Busy = false;
+            StopAllCoroutines(); Busy = false; PouringFrom = -1;
             foreach (var p in Pots) if (p != null) Destroy(p.gameObject);
             Pots.Clear();
             if (stream != null) Destroy(stream.gameObject); stream = null;
@@ -309,6 +311,10 @@ namespace PaintSort.Game
 
         static Vector2 Rot(Vector2 v, float deg) { float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r); return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c); }
         static float Ease(float t) => t * t * (3f - 2f * t);
+        /// <summary>Quintic smootherstep: zero speed AND zero acceleration at both ends, so a pot eases off and settles without a visible start or stop.</summary>
+        static float Smoother(float t) { t = Mathf.Clamp01(t); return t * t * t * (t * (t * 6f - 15f) + 10f); }
+        /// <summary>Fast start, long gentle landing (used while travelling to the pouring spot).</summary>
+        static float OutCubic(float t) { t = 1f - Mathf.Clamp01(t); return 1f - t * t * t; }
 
         /// <summary>Animates one committed pour. `state` already holds the final logic; srcBefore/dstBefore are the pre-move layers.</summary>
         /// <summary>
@@ -319,12 +325,12 @@ namespace PaintSort.Game
 
         IEnumerator PlayPour(MoveResult r, List<UnitVis> srcBefore, List<UnitVis> dstBefore, System.Action done)
         {
-            Busy = true;
+            Busy = true; PouringFrom = r.From;
             var src = Pots[r.From]; var dst = Pots[r.To];
-            float spd = App.I.AnimSpeed;
+            float spd = App.I.AnimSpeed * (App.I.QueuedMoves > 0 ? 1.4f : 1f);        // the player is already waiting with the next move: hurry a little
             if (spd <= 0.001f || App.I.Save.Data.reducedMotion)
             {
-                Busy = false; RenderAll(); Finish(r); done?.Invoke(); yield break;
+                Busy = false; PouringFrom = -1; RenderAll(); Finish(r); done?.Invoke(); yield break;
             }
             App.I.Audio.Play("select");
             src.AnimControlled = true; dst.SetSelected(false); src.SetSelected(false); src.SnapLift();
@@ -345,7 +351,7 @@ namespace PaintSort.Game
             float a0 = 52f, a1 = 82f;
             for (float t = 0; t < travel; t += Time.unscaledDeltaTime)
             {
-                float e = Ease(t / travel); float ang = a0 * e;
+                float e = OutCubic(t / travel); float ang = a0 * Smoother(t / travel);
                 Vector2 end = target - Rot(lipLocal, -dir * ang);
                 src.Rt.anchoredPosition = Vector2.Lerp(restPos + Vector2.up * 40f * s, end, e);
                 src.SetTilt(-dir * ang);
@@ -359,7 +365,7 @@ namespace PaintSort.Game
             for (float t = 0; t < pourDur; t += Time.unscaledDeltaTime)
             {
                 float k = t / pourDur; float prog = k * r.Amount;
-                float ang = Mathf.Lerp(a0, a1, Ease(k));
+                float ang = Mathf.Lerp(a0, a1, Smoother(k));
                 Vector2 end = target - Rot(lipLocal, -dir * ang);
                 src.Rt.anchoredPosition = end; src.SetTilt(-dir * ang);
 
@@ -394,14 +400,14 @@ namespace PaintSort.Game
             var srcAfter = new List<UnitVis>(srcBefore); srcAfter.RemoveRange(srcAfter.Count - r.Amount, r.Amount);
             for (float t = 0; t < back; t += Time.unscaledDeltaTime)
             {
-                float e = Ease(t / back);
+                float e = Smoother(t / back);
                 float ang = Mathf.Lerp(a1, 0, e);
                 src.Rt.anchoredPosition = Vector2.Lerp(fromPos, restPos, e); src.SetTilt(-dir * ang);
                 src.ShowUnits(srcAfter, SurfaceY(ang, dir, srcAfter.Count, cap, 1f - e));
                 yield return null;
             }
             src.Rt.anchoredPosition = restPos; src.SetTilt(0f); src.AnimControlled = false;
-            Busy = false;
+            Busy = false; PouringFrom = -1;
             RenderAll();
             Finish(r);
             done?.Invoke();

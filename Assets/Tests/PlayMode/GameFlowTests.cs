@@ -57,6 +57,36 @@ namespace PaintSort.Tests
         }
 
         [UnityTest]
+        public IEnumerator TapsDuringAPourAreQueuedAndPlayInOrder()
+        {
+            A.StartLevel(35, true);
+            var w = A.CurrentDef.Witness;
+            var reference = new PuzzleState(A.CurrentDef); reference.TryMove(w[0].From, w[0].To); reference.TryMove(w[1].From, w[1].To); reference.TryMove(w[2].From, w[2].To);
+            yield return Tap(w[0].From); yield return Tap(w[0].To);
+            Assert.IsTrue(A.Board.Busy, "first pour should be animating");
+            yield return Tap(w[1].From); yield return Tap(w[1].To);          // second move chosen while the first is still pouring
+            yield return Tap(w[2].From); yield return Tap(w[2].To);          // and a third
+            Assert.AreEqual(2, A.QueuedMoves, "two moves waiting");
+            Assert.AreEqual(1, A.State.MoveCount, "only the first has been applied so far");
+            float t = 0; while ((A.Board.Busy || A.QueuedMoves > 0) && t < 30f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(3, A.State.MoveCount);
+            Assert.AreEqual(reference.Serialize().Split('|')[1], A.State.Serialize().Split('|')[1], "queued moves ended on exactly the board the same three moves give");
+        }
+
+        [UnityTest]
+        public IEnumerator InvalidTapsDuringAPourAreNotQueued()
+        {
+            A.StartLevel(35, true);
+            var w = A.CurrentDef.Witness;
+            yield return Tap(w[0].From); yield return Tap(w[0].To);
+            Assert.IsTrue(A.Board.Busy);
+            yield return Tap(w[0].To); yield return Tap(w[0].To);             // same pot twice = select then deselect, nothing to queue
+            Assert.AreEqual(0, A.QueuedMoves);
+            yield return WaitIdle();
+            Assert.AreEqual(1, A.State.MoveCount);
+        }
+
+        [UnityTest]
         public IEnumerator BootsWithStartingGoldFiveLivesAndTheFullCatalog()
         {
             Assert.AreEqual(500, A.Wallet.Balance);
