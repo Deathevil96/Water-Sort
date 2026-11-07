@@ -131,9 +131,9 @@ namespace PaintSort.Game
             UI.Place((RectTransform)backBtn.transform, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(24, 0), new Vector2(100, 100));
 
             var lp = Pill(topBar, Art.Heart, new Vector2(250, 92), out livesText, out livesSub);
-            UI.Place(lp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(140, 0), new Vector2(250, 92));
+            UI.Place(lp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(168, 0), new Vector2(250, 92));
             var gp = Pill(topBar, Art.Coin, new Vector2(330, 92), out goldText, out _);
-            UI.Place(gp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(430, 0), new Vector2(330, 92));
+            UI.Place(gp, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(456, 0), new Vector2(330, 92));
             settingsBtn = UI.Btn(topBar, "", UI.Blue, new Vector2(100, 100), OpenSettings, Art.Gear);
             UI.Place((RectTransform)settingsBtn.transform, new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-24, 0), new Vector2(100, 100));
         }

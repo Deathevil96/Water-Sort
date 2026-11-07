@@ -80,14 +80,24 @@ namespace PaintSort.Game
             return inner;
         }
 
+        /// <summary>The glossy candy look shared by every button: focus ring, soft shadow, gold edge (returned, it is the tap target), dark rim, colour face, light top half and a thin glint.</summary>
+        static Image GlossLayers(RectTransform root, Color face, Vector2 size, out Image gold)
+        {
+            var ring = Img(root, "Focus", Art.Round, FocusRing, true); Stretch(ring.rectTransform, -14, -14, -14, -14); ring.gameObject.SetActive(false);   // shown while focused by keyboard / gamepad / D-pad
+            var sh = Img(root, "Shadow", Art.RoundSoft, new Color(0.15f, 0.05f, 0.25f, 0.45f), true); Stretch(sh.rectTransform, -4, -16, -4, 6);
+            float e = Mathf.Max(4f, Mathf.Min(size.y, size.x) * 0.06f);                                  // edge thickness scales with the button
+            gold = Img(root, "Outline", Art.Round, GoldEdge, true, true); Stretch(gold.rectTransform);
+            var rim = Img(root, "Rim", Art.Round, Color.Lerp(face, Color.black, 0.55f), true); Stretch(rim.rectTransform, e, e * 0.9f, e, e);
+            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, e * 1.7f, e * 1.8f, e * 1.7f, e * 1.7f);
+            var top = Img(root, "Top", Art.Round, new Color(1, 1, 1, 0.26f), true); Stretch(top.rectTransform, e * 2.1f, size.y * 0.5f, e * 2.1f, e * 2.1f);
+            var glint = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.45f), true); Stretch(glint.rectTransform, size.x * 0.14f, size.y * 0.76f, size.x * 0.14f, e * 2.6f);
+            return ring;
+        }
+
         public static Button Btn(Transform parent, string label, Color face, Vector2 size, Action onClick, Sprite icon = null, int fontSize = 44)
         {
             var root = Rect(parent, "Btn_" + label); root.sizeDelta = size;
-            var ring = Img(root, "Focus", Art.Round, FocusRing, true); Stretch(ring.rectTransform, -14, -14, -14, -14); ring.gameObject.SetActive(false);   // shown while focused by keyboard / gamepad / D-pad
-            var sh = Img(root, "Shadow", Art.RoundSoft, new Color(Ink.r, Ink.g, Ink.b, 0.4f), true); Stretch(sh.rectTransform, -4, -14, -4, 6);
-            var o = Img(root, "Outline", Art.Round, Ink, true, true); Stretch(o.rectTransform);
-            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, 6, 8, 6, 6);
-            var hi = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.3f), true); Stretch(hi.rectTransform, 14, size.y * 0.52f, 14, 10);
+            var ring = GlossLayers(root, face, size, out var o);
             var b = root.gameObject.AddComponent<Button>(); b.targetGraphic = o; b.transition = Selectable.Transition.None;
             var fx = root.gameObject.AddComponent<PressFx>(); fx.Ring = ring.gameObject;
             float iconPad = 0;
@@ -100,6 +110,7 @@ namespace PaintSort.Game
             if (!string.IsNullOrEmpty(label))
             {
                 var t = Txt(root, label, fontSize, Color.white); t.rectTransform.offsetMin = new Vector2(iconPad * 1.4f, 4); t.rectTransform.offsetMax = new Vector2(0, 0);
+                var ol = t.GetComponent<Outline>(); if (ol != null) ol.effectColor = Color.Lerp(face, Color.black, 0.65f);
             }
             if (onClick != null) b.onClick.AddListener(() => { App.I?.Audio.Play("tap"); onClick(); });
             return b;
@@ -111,14 +122,8 @@ namespace PaintSort.Game
         public static Button GlossBtn(Transform parent, string label, Color face, Vector2 size, Action onClick, int fontSize = 56)
         {
             var root = Rect(parent, "Btn_" + label); root.sizeDelta = size;
-            var ring = Img(root, "Focus", Art.Round, FocusRing, true); Stretch(ring.rectTransform, -14, -14, -14, -14); ring.gameObject.SetActive(false);
-            var sh = Img(root, "Shadow", Art.RoundSoft, new Color(0.15f, 0.05f, 0.25f, 0.45f), true); Stretch(sh.rectTransform, -4, -16, -4, 6);
-            float e = Mathf.Max(5f, size.y * 0.06f);                                                   // edge thickness scales with the button
-            var gold = Img(root, "Outline", Art.Round, GoldEdge, true, true); Stretch(gold.rectTransform);
-            var rim = Img(root, "Rim", Art.Round, Color.Lerp(face, Color.black, 0.55f), true); Stretch(rim.rectTransform, e, e * 0.9f, e, e);
-            var f = Img(root, "Face", Art.Round, face, true); Stretch(f.rectTransform, e * 1.7f, e * 1.8f, e * 1.7f, e * 1.7f);
-            var top = Img(root, "Top", Art.Round, new Color(1, 1, 1, 0.26f), true); Stretch(top.rectTransform, e * 2.1f, size.y * 0.5f, e * 2.1f, e * 2.1f);
-            var glint = Img(root, "Shine", Art.Round, new Color(1, 1, 1, 0.45f), true); Stretch(glint.rectTransform, size.x * 0.12f, size.y * 0.76f, size.x * 0.12f, e * 2.6f);
+            var ring = GlossLayers(root, face, size, out var gold);
+            float e = Mathf.Max(5f, size.y * 0.06f);
             var b = root.gameObject.AddComponent<Button>(); b.targetGraphic = gold; b.transition = Selectable.Transition.None;
             var fx = root.gameObject.AddComponent<PressFx>(); fx.Ring = ring.gameObject;
             if (!string.IsNullOrEmpty(label))
@@ -141,6 +146,7 @@ namespace PaintSort.Game
             img.color = on ? m.face : Grey;
             var edge = b.transform.Find("Rim") != null ? b.transform.Find("Outline")?.GetComponent<Image>() : null;      // glossy buttons: gold edge goes dull when disabled
             if (edge != null) edge.color = on ? GoldEdge : Art.Hex("A9A3B8");
+            TintRim(b, img.color);
         }
 
         /// <summary>Greys a button and shows a padlock badge while keeping it clickable (so tapping it can explain when it unlocks).</summary>
@@ -153,7 +159,7 @@ namespace PaintSort.Game
             var badge = b.transform.Find("LockBadge");
             if (locked)
             {
-                img.color = Grey;
+                img.color = Grey; TintRim(b, Grey);
                 if (badge == null)
                 {
                     var lk = Img(b.transform, "LockBadge", Art.Lock, Color.white);
@@ -164,10 +170,13 @@ namespace PaintSort.Game
             }
             else
             {
-                img.color = m.face;
+                img.color = m.face; TintRim(b, m.face);
                 if (badge != null) badge.gameObject.SetActive(false);
             }
         }
+
+        /// <summary>Keeps a glossy button's dark rim in step with its face colour (so a greyed button does not keep a blue rim).</summary>
+        static void TintRim(Button b, Color face) { var rim = b.transform.Find("Rim"); if (rim != null) rim.GetComponent<Image>().color = Color.Lerp(face, Color.black, 0.55f); }
 
         public static void SetLabel(Button b, string text) { var t = b.GetComponentInChildren<Text>(); if (t != null) t.text = text; }
 
