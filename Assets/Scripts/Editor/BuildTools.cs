@@ -54,6 +54,7 @@ namespace PaintSort.EditorTools
                 string output = ArgValue("-output") ?? DefaultOutput(target, bundle);
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)) ?? OutputDir);
                 if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = bundle;
+                if (target == BuildTarget.Android && !development) ApplyReleaseSigning();
 
                 var options = new BuildPlayerOptions
                 {
@@ -85,6 +86,19 @@ namespace PaintSort.EditorTools
             v.versionName = string.Join(".", bits);
             WriteVersion(v);
             Debug.Log("[VERSION] versionName is now " + v.versionName + " (build code unchanged: " + v.buildNumber + ")");
+        }
+
+        /// <summary>Signs release builds with the upload key in Signing/ (git-ignored: keystore + password file).</summary>
+        static void ApplyReleaseSigning()
+        {
+            const string ks = "Signing/palettepour-upload.jks", pw = "Signing/keystore-password.txt";
+            if (!File.Exists(ks) || !File.Exists(pw)) { Debug.LogWarning("[BUILD] no Signing/ keystore: release build will be signed with the debug key"); return; }
+            string pass = File.ReadAllText(pw).Trim();
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = Path.GetFullPath(ks);
+            PlayerSettings.Android.keystorePass = pass;
+            PlayerSettings.Android.keyaliasName = "palettepour";
+            PlayerSettings.Android.keyaliasPass = pass;
         }
 
         static VersionFile ReadVersion()
