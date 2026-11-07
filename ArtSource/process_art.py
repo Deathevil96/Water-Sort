@@ -93,14 +93,35 @@ solid_full = solid
 solid = solid.crop(crop)
 
 def clean_glass(im, solid_full):
-    """The supplied glass has smoky blotches inside. Flatten the inside to one even, faint tint; keep outline, rim, floor ellipse and shine streaks."""
+    """The supplied glass has milky wall bands, smoky blotches and a milky floor. Below the rim keep ONLY the dark outline, make everything inside
+    a faint even tint, and add two thin shine lines. The rim (above BODY_TOP) is kept as drawn."""
+    BODY_TOP = 470
+    w, h = im.size
     al = im.getchannel('A')
-    inner = solid_full.filter(ImageFilter.MinFilter(21)).filter(ImageFilter.GaussianBlur(6))
-    hi = al.point(lambda v: 255 if v > 110 else 0).filter(ImageFilter.GaussianBlur(3))
-    new_a = ImageChops.lighter(Image.new('L', im.size, 30), ImageChops.multiply(al, hi))
-    tinted = Image.composite(Image.new('RGBA', im.size, (232, 228, 252, 255)), im, inner)
-    tinted.putalpha(new_a)
-    return Image.composite(tinted, im, inner)
+    lum = im.convert('L')
+    outline = ImageChops.multiply(lum.point(lambda v: 255 if v < 150 else 0), al.point(lambda v: 255 if v > 60 else 0))
+    outline = outline.filter(ImageFilter.MaxFilter(3))
+    inside = solid_full.filter(ImageFilter.MinFilter(5))
+    body = Image.new('L', (w, h), 0); body.paste(255, (0, BODY_TOP, w, h))
+    tint_a = ImageChops.multiply(inside, Image.new("L", (w, h), 9))
+    new_a = ImageChops.lighter(tint_a, ImageChops.multiply(al, outline))
+    cleaned = Image.new('RGBA', (w, h), (236, 232, 255, 0))
+    cleaned.paste(im, (0, 0), outline)                       # outline pixels as drawn
+    cleaned.putalpha(new_a)
+    # two thin shine lines following the taper of the glass
+    shine = Image.new('L', (w, h), 0); d = ImageDraw.Draw(shine)
+    for y0, y1, side in ((560, 900, 0), (960, 1080, 0), (560, 760, 1)):
+        for y in range(y0, y1, 4):
+            row = solid_full.crop((0, y, w, y + 1)).getbbox()
+            if not row: continue
+            x = row[0] + 34 if side == 0 else row[2] - 34
+            d.line((x, y, x, y + 5), fill=140, width=7)
+    shine = shine.filter(ImageFilter.GaussianBlur(2))
+    white = Image.new('RGBA', (w, h), (255, 255, 255, 255)); white.putalpha(shine)
+    cleaned.alpha_composite(white)
+    out = im.copy()
+    out.paste(cleaned, (0, 0), body)                         # body replaced, rim untouched
+    return out
 pot = cropped(clean_glass(pot_raw, solid_full))
 save(pot, ART, 'pot.png')
 RIM_CUT = 452 - crop[1]                                                         # below the opaque rim band; the rim hides anything above
@@ -108,7 +129,7 @@ mask_hi = Image.new('L', solid.size, 0); mask_hi.paste(solid.crop((0, RIM_CUT, s
 mask_hi = mask_hi.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.GaussianBlur(1.2))   # erode a few px so paint never pokes past the outline
 mask = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); mask.putalpha(mask_hi)
 save(mask.resize((OUT_W, OUT_H), Image.LANCZOS), ART, 'pot_mask.png')
-back = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); back.putalpha(mask_hi.point(lambda v: int(v * 0.42)))
+back = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); back.putalpha(mask_hi.point(lambda v: int(v * 0.04)))
 save(back.resize((OUT_W, OUT_H), Image.LANCZOS), ART, 'pot_back.png')
 
 # cover: remove the faux checkerboard, then fit its silhouette onto the pot's own bounding box
