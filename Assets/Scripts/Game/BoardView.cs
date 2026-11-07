@@ -21,7 +21,7 @@ namespace PaintSort.Game
         float lift, liftTarget;
         RectTransform liquidWorld;
         Image glow, focus, cover, badge, mark;
-        Text coverText;
+        CanvasGroup keyGroup; Image keyFill, keySym; int keyColor = -2;
         Image[] segs; Image[] syms; Text[] qs; Image[] lines;
         float unitH;
         Color charcoal = Art.Hex("3B3548");
@@ -54,7 +54,13 @@ namespace PaintSort.Game
             }
             var glass = UI.Img(Rt, "Glass", Art.PotGlass, Color.white); UI.Stretch(glass.rectTransform);
             cover = UI.Img(Rt, "Cover", Art.PotCover, Color.white); UI.Stretch(cover.rectTransform); cover.gameObject.SetActive(false);
-            coverText = UI.Txt(cover.transform, "?", 130, Color.white); coverText.rectTransform.anchoredPosition = new Vector2(0, -10);
+            // the cloth shows which finished colour uncovers it: a small full bottle of that colour
+            var key = UI.Rect(cover.transform, "Key"); UI.Place(key, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -14), new Vector2(Art.Pot.W * 0.5f, Art.Pot.H * 0.5f));
+            keyGroup = key.gameObject.AddComponent<CanvasGroup>(); keyGroup.blocksRaycasts = false; keyGroup.interactable = false;
+            keyFill = UI.Img(key, "Fill", Art.PotMask, Color.white); UI.Stretch(keyFill.rectTransform);
+            var keyGlass = UI.Img(key, "Glass", Art.PotGlass, Color.white); UI.Stretch(keyGlass.rectTransform);
+            keySym = UI.Img(key, "Sym", Art.Symbol(0), new Color(1, 1, 1, 0.9f)); UI.Place(keySym.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -8), new Vector2(40, 40)); keySym.gameObject.SetActive(false);
+            foreach (var g in key.GetComponentsInChildren<Graphic>(true)) g.raycastTarget = false;
             mark = UI.Img(Rt, "Mark", Art.Check, new Color(0.3f, 0.7f, 1f, 0f)); UI.Place(mark.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(90, 90));
             badge = UI.Img(Rt, "Done", Art.Check, new Color(0.35f, 0.85f, 0.5f, 1f)); UI.Place(badge.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(110, 110)); badge.gameObject.SetActive(false);
             ShowUnits(new List<UnitVis>());
@@ -85,12 +91,23 @@ namespace PaintSort.Game
 
         public void SetSelected(bool on) { liftTarget = on ? 1f : 0f; var c = glow.color; c.a = on ? 0.9f : 0f; if (on) c = new Color(1f, 0.85f, 0.2f, 0.9f); glow.color = c; }
         public void SetMarked(bool on) { var c = glow.color; if (on) glow.color = new Color(0.3f, 0.7f, 1f, 0.95f); else if (liftTarget < 0.5f) glow.color = new Color(c.r, c.g, c.b, 0f); mark.color = new Color(0.3f, 0.7f, 1f, on ? 1f : 0f); mark.rectTransform.localScale = Vector3.one * 1.2f; }
-        public void SetCovered(bool on) { Show(cover.gameObject, on); }
+        /// <summary>Shows or hides the cloth. keyColour = the colour that uncovers it (-1 = any), drawn as a full bottle on the cloth.</summary>
+        public void SetCovered(bool on, int keyColour = -1)
+        {
+            Show(cover.gameObject, on);
+            if (!on || keyColour == keyColor) return;
+            keyColor = keyColour;
+            Show(keyGroup.gameObject, keyColour >= 0);
+            if (keyColour < 0) return;
+            keyFill.color = Art.Paint[keyColour % Art.Paint.Length];
+            bool sym = symbolsOn; Show(keySym.gameObject, sym);
+            if (sym) keySym.sprite = Art.Symbol(keyColour);
+        }
         public void SetComplete(bool on) { Show(badge.gameObject, on); }
         public void SnapLift() { lift = liftTarget; }
         public Vector2 GetRest() => RestPos;
 
-        public void SetSymbolsVisible(bool on) { symbolsOn = on; }
+        public void SetSymbolsVisible(bool on) { if (symbolsOn != on) keyColor = -2; symbolsOn = on; }
         bool symbolsOn;
 
         static void Show(GameObject g, bool on) { if (g.activeSelf != on) g.SetActive(on); }
@@ -136,9 +153,9 @@ namespace PaintSort.Game
             for (float t = 0; t < dur; t += Time.unscaledDeltaTime)
             {
                 float k = t / dur; r.localScale = Vector3.one * (1f + k * 0.35f); r.localRotation = Quaternion.Euler(0, 0, k * 14f);
-                var c = cg.color; c.a = 1f - k; cg.color = c; coverText.color = new Color(1, 1, 1, 1f - k); yield return null;
+                var c = cg.color; c.a = 1f - k; cg.color = c; keyGroup.alpha = 1f - k; yield return null;
             }
-            r.localScale = Vector3.one; r.localRotation = Quaternion.identity; cg.color = Color.white; coverText.color = Color.white;
+            r.localScale = Vector3.one; r.localRotation = Quaternion.identity; cg.color = Color.white; keyGroup.alpha = 1f;
             cover.gameObject.SetActive(false);
         }
     }
@@ -271,7 +288,7 @@ namespace PaintSort.Game
             var units = UnitsOf(p);
             if (App.I.XRay) for (int k = 0; k < units.Count; k++) { var u = units[k]; u.hidden = false; units[k] = u; }
             v.ShowUnits(units);
-            v.SetCovered(p.Covered && !App.I.XRay); v.SetComplete(p.Complete && !p.Covered);
+            v.SetCovered(p.Covered && !App.I.XRay, p.CoverColor); v.SetComplete(p.Complete && !p.Covered);
         }
 
         public void SetSelected(int i, bool on) { if (i >= 0 && i < Pots.Count) Pots[i].SetSelected(on); }

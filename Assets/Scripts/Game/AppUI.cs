@@ -373,7 +373,7 @@ namespace PaintSort.Game
                 case 3: ShowHint("All the matching colours on top move together in one pour.", 9); break;
                 case 4: ShowHint("Each pot holds 4 layers. If it can't fit everything, only part of it pours.", 9); break;
                 case 21: ShowHint("Dark ? layers hide a secret colour. Pour away what's on top to reveal it!", 10); break;
-                case 31: ShowHint("Cloth-covered pots can't be used yet. Complete one colour to uncover one!", 10); break;
+                case 31: ShowHint("Cloth-covered pots can't be used yet. Fill a pot with the colour shown on a cloth to uncover it!", 10); break;
                 case 100: ShowHint("You unlocked the Leaderboard! Find it on the main menu.", 8); break;
             }
         }

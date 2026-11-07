@@ -99,6 +99,8 @@ namespace PaintSort.Core
                 if (c.Colors.Count > c.Capacity) err.Add("over capacity");
                 if (c.Hidden.Count != c.Colors.Count) err.Add("hidden metadata length mismatch");
                 if (c.Covered && c.Colors.Count == 0) err.Add("empty covered container");
+                if (c.Covered && c.CoverColor < 0) err.Add("covered container has no key colour");
+                if (c.Covered && c.Colors.Contains(c.CoverColor)) err.Add("covered container holds its own key colour (deadlock)");
                 for (int k = 0; k < c.Colors.Count; k++)
                 {
                     counts.TryGetValue(c.Colors[k], out int n); counts[c.Colors[k]] = n + 1;

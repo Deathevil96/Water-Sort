@@ -16,6 +16,8 @@ namespace PaintSort.Core
     {
         public int Capacity = 4;
         public bool Covered;
+        /// <summary>Colour whose completed pot uncovers this one (shown on the cloth). -1 = any completed colour (hand-built boards, old saves).</summary>
+        public int CoverColor = -1;
         /// <summary>Bottom to top.</summary>
         public List<int> Colors = new List<int>();
         /// <summary>Parallel to Colors. true = shown as dark '?' until it becomes the top layer.</summary>
@@ -23,7 +25,7 @@ namespace PaintSort.Core
 
         public ContainerDef Clone()
         {
-            return new ContainerDef { Capacity = Capacity, Covered = Covered, Colors = new List<int>(Colors), Hidden = new List<bool>(Hidden) };
+            return new ContainerDef { Capacity = Capacity, Covered = Covered, CoverColor = CoverColor, Colors = new List<int>(Colors), Hidden = new List<bool>(Hidden) };
         }
     }
 

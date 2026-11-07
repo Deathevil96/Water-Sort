@@ -79,7 +79,7 @@ Adds a spare empty paint pot until this level ends.	Añade un bote de pintura va
 Prices come from the store catalogue.	Los precios vienen del catálogo de la tienda.
 Coming soon! Real-money purchases are switched off until store billing is set up.	¡Pronto! Las compras con dinero real están desactivadas hasta configurar la facturación.
 Nothing to undo yet.	Aún no hay nada que deshacer.
-Covered! Finish a colour to uncover it.	¡Tapado! Completa un color para destaparlo.
+Covered! Finish the colour shown on the cloth.	¡Tapado! Completa el color que muestra la tela.
 Need at least two containers with paint to shuffle.	Necesitas al menos dos botes con pintura para mezclar.
 Select at least two containers.	Elige al menos dos botes.
 Not enough Gold.	No tienes suficiente oro.
@@ -95,7 +95,7 @@ All the matching colours on top move together in one pour.	Todos los colores igu
 Each pot holds 4 layers. If it can't fit everything, only part of it pours.	Cada bote tiene 4 capas. Si no cabe todo, solo se vierte una parte.
 This is a Hard level (orange badge) — take your time. Undo is free!	Este es un nivel difícil (insignia naranja): tómate tu tiempo. ¡Deshacer es gratis!
 Dark ? layers hide a secret colour. Pour away what's on top to reveal it!	Las capas oscuras con ? esconden un color secreto. ¡Vierte lo de arriba para revelarlo!
-Cloth-covered pots can't be used yet. Complete one colour to uncover one!	Los botes tapados con tela aún no se pueden usar. ¡Completa un color para destapar uno!
+Cloth-covered pots can't be used yet. Fill a pot with the colour shown on a cloth to uncover it!	Los botes tapados con tela aún no se pueden usar. ¡Llena un bote con el color que muestra la tela para destaparlo!
 You unlocked the Leaderboard! Find it on the main menu.	¡Has desbloqueado la clasificación! Búscala en el menú principal.
 Undo rewinds your last pour — it's free, use it as much as you like!	Deshacer revierte tu último vertido: es gratis, ¡úsalo cuanto quieras!
 # --- power-up progression

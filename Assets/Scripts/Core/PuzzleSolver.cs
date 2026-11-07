@@ -27,7 +27,7 @@ namespace PaintSort.Core
 
         sealed class Node
         {
-            public byte[] D; // per pot: [count][flags: 1=covered 2=complete][hiddenMask][colors * MaxCap]
+            public byte[] D; // per pot: [count][flags: bit0 covered, bit1 complete, bits 2+ = cover colour + 1 (0 = any)][hiddenMask][colors * MaxCap]
             public int Parent; public Move Via; public int G; public int H;
         }
 
@@ -42,7 +42,7 @@ namespace PaintSort.Core
             {
                 var p = state.Pots[i]; int o = i * L.Stride;
                 start[o] = (byte)p.Count;
-                start[o + 1] = (byte)((p.Covered ? 1 : 0) | (p.Complete ? 2 : 0));
+                start[o + 1] = (byte)((p.Covered ? 1 : 0) | (p.Complete ? 2 : 0) | (p.Covered ? (p.CoverColor + 1) << 2 : 0));
                 int mask = 0;
                 for (int k = 0; k < p.Count; k++) { start[o + 3 + k] = (byte)p.Colors[k]; if (p.Hidden[k]) mask |= 1 << k; }
                 start[o + 2] = (byte)mask;
@@ -134,9 +134,9 @@ namespace PaintSort.Core
                     for (int i = 0; i < L.N; i++)
                     {
                         int o = i * L.Stride;
-                        if ((d[o + 1] & 1) != 0)
+                        if ((d[o + 1] & 1) != 0 && ((d[o + 1] >> 2) == 0 || (d[o + 1] >> 2) - 1 == col))
                         {
-                            d[o + 1] = (byte)(d[o + 1] & ~1);
+                            d[o + 1] = (byte)(d[o + 1] & 2);
                             if (d[o] > 0) d[o + 2] = (byte)(d[o + 2] & ~(1 << (d[o] - 1)));
                             break;
                         }

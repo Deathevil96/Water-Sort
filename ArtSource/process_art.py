@@ -85,13 +85,24 @@ CW, CH = crop[2] - crop[0], crop[3] - crop[1]
 OUT_W = 600; OUT_H = round(OUT_W * CH / CW)
 def cropped(im): return im.crop(crop).resize((OUT_W, OUT_H), Image.LANCZOS)
 
-pot = cropped(pot_raw)
-save(pot, ART, 'pot.png')
 
 # interior silhouette from the pot's OWN outline: everything not connected to the outside is "pot"
 a_bin = alpha.point(lambda v: 0 if v > 40 else 255)
 solid = flood_outside(a_bin).point(lambda v: 0 if v else 255)                  # 255 inside the outline (and on the outline)
+solid_full = solid
 solid = solid.crop(crop)
+
+def clean_glass(im, solid_full):
+    """The supplied glass has smoky blotches inside. Flatten the inside to one even, faint tint; keep outline, rim, floor ellipse and shine streaks."""
+    al = im.getchannel('A')
+    inner = solid_full.filter(ImageFilter.MinFilter(21)).filter(ImageFilter.GaussianBlur(6))
+    hi = al.point(lambda v: 255 if v > 110 else 0).filter(ImageFilter.GaussianBlur(3))
+    new_a = ImageChops.lighter(Image.new('L', im.size, 30), ImageChops.multiply(al, hi))
+    tinted = Image.composite(Image.new('RGBA', im.size, (232, 228, 252, 255)), im, inner)
+    tinted.putalpha(new_a)
+    return Image.composite(tinted, im, inner)
+pot = cropped(clean_glass(pot_raw, solid_full))
+save(pot, ART, 'pot.png')
 RIM_CUT = 452 - crop[1]                                                         # below the opaque rim band; the rim hides anything above
 mask_hi = Image.new('L', solid.size, 0); mask_hi.paste(solid.crop((0, RIM_CUT, solid.width, solid.height)), (0, RIM_CUT))
 mask_hi = mask_hi.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.GaussianBlur(1.2))   # erode a few px so paint never pokes past the outline
@@ -101,10 +112,18 @@ back = Image.new('RGBA', mask_hi.size, (255, 255, 255, 0)); back.putalpha(mask_h
 save(back.resize((OUT_W, OUT_H), Image.LANCZOS), ART, 'pot_back.png')
 
 # cover: remove the faux checkerboard, then fit its silhouette onto the pot's own bounding box
-cov = trim(key_light_background(opn('Burlap-Covered Pot')))
+def main_blob_only(im):
+    a = im.getchannel('A').point(lambda v: 255 if v > 128 else 0)
+    work = a.filter(ImageFilter.MinFilter(9)); w, h = work.size
+    ImageDraw.floodfill(work, (w // 2, int(h * 0.55)), 128)
+    keep = work.point(lambda v: 255 if v == 128 else 0).filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))
+    out = im.copy(); out.putalpha(keep); return out
+cov = trim(main_blob_only(key_light_background(opn('Burlap-Covered Pot'))))
 pb = (bb[0] - crop[0], bb[1] - crop[1], bb[2] - crop[0], bb[3] - crop[1])      # pot bbox inside the crop
-cov = cov.resize((pb[2] - pb[0], pb[3] - pb[1]), Image.LANCZOS)
-frame = Image.new('RGBA', (CW, CH), (0, 0, 0, 0)); frame.paste(cov, (pb[0], pb[1]), cov)
+GROW = 14                                                                      # the cloth hangs a little past the glass on every side, so no glass shows
+cw, ch = pb[2] - pb[0] + 2 * GROW, pb[3] - pb[1] + 2 * GROW
+cov = cov.resize((cw, ch), Image.LANCZOS)
+frame = Image.new('RGBA', (CW, CH), (0, 0, 0, 0)); frame.paste(cov, (pb[0] - GROW, pb[1] - GROW), cov)
 save(frame.resize((OUT_W, OUT_H), Image.LANCZOS), ART, 'pot_cover.png')
 
 sh = trim(opn('Soft Purple Oval Shadow'), 2)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using PaintSort.Core;
 
@@ -136,6 +137,68 @@ namespace PaintSort.Tests
             Assert.IsFalse(s.Pots[2].Covered);
             s.Undo();
             Assert.IsTrue(s.Pots[2].Covered); Assert.IsFalse(s.Pots[0].Complete); Assert.AreEqual(0, s.TotalCoversUnlocked);
+        }
+
+        [Test]
+        public void CoverOnlyOpensForItsOwnColour()
+        {
+            // pot 2 is covered and needs colour 3; finishing colour 0 must NOT open it, finishing colour 3 must
+            var l = Make(new[] { 0, 0, 0 }, new[] { 0 }, new[] { 1, 1, 1, 1 }, new[] { 3, 3, 3 }, new[] { 3 }, new int[0]);
+            l.Containers[2].Covered = true; l.Containers[2].CoverColor = 3;
+            var s = new PuzzleState(l);
+            s.TryMove(1, 0);
+            Assert.IsTrue(s.Pots[2].Covered, "colour 0 finished, but the cloth wants colour 3");
+            Assert.AreEqual(3, PuzzleState.Restore(l, s.Serialize()).Pots[2].CoverColor);
+            s.TryMove(4, 3);
+            Assert.IsFalse(s.Pots[2].Covered);
+        }
+
+        [Test]
+        public void CoverKeyColoursAreAlwaysCompletableOutsideTheCoveredPot()
+        {
+            int covered = 0;
+            for (int id = 31; id <= 400; id++)
+            {
+                var l = LevelGenerator.Generate(id).Level;
+                foreach (var c in l.Containers)
+                {
+                    if (!c.Covered) continue;
+                    covered++;
+                    Assert.GreaterOrEqual(c.CoverColor, 0, "level " + id);
+                    Assert.IsFalse(c.Colors.Contains(c.CoverColor), "level " + id + ": a covered pot holds its own key colour");
+                }
+                Assert.IsTrue(LevelAudit.ReplayWitness(l, out var err), "level " + id + " " + err);
+                var round = LevelCodec.Decode(LevelCodec.Encode(l));
+                for (int i = 0; i < l.Containers.Count; i++) Assert.AreEqual(l.Containers[i].CoverColor, round.Containers[i].CoverColor, "level " + id);
+            }
+            Assert.Greater(covered, 50);
+        }
+
+        [Test]
+        public void VariantsKeepLayoutChangeColoursAndStaySolvable()
+        {
+            var rng = new System.Random(5);
+            foreach (int id in new[] { 5, 12, 35, 60, 150, 400, 900 })
+            {
+                var o = LevelGenerator.Generate(id).Level; bool anyDifferent = false;
+                for (int n = 0; n < 6; n++)
+                {
+                    var v = LevelVariant.Make(o, rng);
+                    Assert.AreEqual(o.Containers.Count, v.Containers.Count);
+                    for (int i = 0; i < o.Containers.Count; i++)
+                    {
+                        Assert.AreEqual(o.Containers[i].Colors.Count, v.Containers[i].Colors.Count, "level " + id + " pot fill");
+                        Assert.AreEqual(o.Containers[i].Covered, v.Containers[i].Covered, "level " + id + " cloth position");
+                        Assert.AreEqual(o.Containers[i].Hidden.Count, v.Containers[i].Hidden.Count);
+                        for (int k = 0; k < o.Containers[i].Hidden.Count; k++) Assert.AreEqual(o.Containers[i].Hidden[k], v.Containers[i].Hidden[k], "level " + id + " mystery layers");
+                        if (!o.Containers[i].Colors.SequenceEqual(v.Containers[i].Colors)) anyDifferent = true;
+                        if (v.Containers[i].Covered) Assert.IsFalse(v.Containers[i].Colors.Contains(v.Containers[i].CoverColor), "level " + id);
+                    }
+                    Assert.IsTrue(LevelAudit.ReplayWitness(v, out var err), "level " + id + " variant: " + err);
+                }
+                Assert.IsTrue(anyDifferent, "level " + id + " never changed");
+            }
+            for (int id = 1; id <= 4; id++) { var t = LevelGenerator.Generate(id).Level; Assert.AreSame(t, LevelVariant.Make(t, rng), "tutorial " + id + " must not vary"); }
         }
 
         [Test]

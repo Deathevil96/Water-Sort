@@ -134,6 +134,7 @@ namespace PaintSort.Core
                 explored += sol.ExploredStates;
                 if (sol.Status != SolverStatus.Solved) continue;
                 lvl.Witness = sol.Moves;
+                LevelCovers.Assign(lvl);
                 if (!LevelAudit.ReplayWitness(lvl, out _)) continue;
                 float progress = candidates > 1 ? DifficultyProbe.CarefulProgress(lvl, ProbeTrials, seed) : 1f;
                 pool.Add(new Candidate { Level = lvl, Moves = sol.Moves.Count, Explored = sol.ExploredStates, Progress = progress });
@@ -213,6 +214,27 @@ namespace PaintSort.Core
         }
     }
 
+    /// <summary>
+    /// Gives every cloth-covered pot the colour that unlocks it. The colour is taken from the verified solution: replaying it, the first completed colour
+    /// uncovers the first cover, and so on. So the key colour is always completable WITHOUT the covered pot (a colour that lives inside the pot can never
+    /// be its own key), and every level stays solvable. Deterministic, so the catalogue file needs no extra data.
+    /// </summary>
+    public static class LevelCovers
+    {
+        public static void Assign(LevelDefinition l)
+        {
+            if (l.CoveredCount == 0) return;
+            foreach (var c in l.Containers) c.CoverColor = -1;
+            var st = new PuzzleState(l);
+            foreach (var m in l.Witness)
+            {
+                var r = st.TryMove(m.From, m.To);
+                if (!r.Valid) return;
+                foreach (int u in r.UnlockedPots) l.Containers[u].CoverColor = r.Color;
+            }
+        }
+    }
+
     /// <summary>Compact text serialisation of the catalog (version-controlled content, loaded from Resources).</summary>
     public static class LevelCodec
     {
@@ -259,6 +281,7 @@ namespace PaintSort.Core
             }
             if (parts.Length > 4 && parts[4].Length > 0)
                 foreach (var m in parts[4].Split(' ')) { var ft = m.Split('>'); l.Witness.Add(new Move(int.Parse(ft[0]), int.Parse(ft[1]))); }
+            LevelCovers.Assign(l);
             return l;
         }
     }

@@ -171,10 +171,12 @@ namespace PaintSort.Game
             if (!Catalog.Has(id)) { Toast("Level " + id + " is not available."); return; }
             if (!force && !Lives.HasLife) { OpenNoLives(); return; }
             CurrentLevel = id; D.currentLevel = id; AttemptId++;
-            CurrentDef = Catalog.Get(id);
-            PuzzleState restored = resume && D.resumeLevel == id ? PuzzleState.Restore(CurrentDef, D.resumeBoard) : null;
+            var original = Catalog.Get(id);
+            PuzzleState restored = resume && D.resumeLevel == id ? PuzzleState.Restore(original, D.resumeBoard) : null;
             if (restored != null && restored.IsWon) restored = null;      // a board saved at the instant of winning is not worth resuming
             if (restored == null) ClearResume();
+            // every new attempt (first start, retry, restart) gets the same layout with different paint colours; a resumed board keeps its own colours
+            CurrentDef = restored != null ? original : LevelVariant.Make(original, new System.Random());
             State = restored ?? new PuzzleState(CurrentDef);
             selected = -1; attemptEnded = false; winHandled = false; shuffleMode = false; shuffleMarks.Clear();
             extrasAdded = 0; foreach (var p in State.Pots) if (p.Extra) extrasAdded++;
@@ -217,7 +219,7 @@ namespace PaintSort.Game
 
             if (selected < 0)
             {
-                if (pot.Covered) { Audio.Play("invalid"); Board.Shake(i); Toast("Covered! Finish a colour to uncover it."); return; }
+                if (pot.Covered) { Audio.Play("invalid"); Board.Shake(i); Toast("Covered! Finish the colour shown on the cloth."); return; }
                 if (pot.IsEmpty || !State.IsAccessible(i)) { Audio.Play("invalid"); Board.Shake(i); return; }
                 selected = i; Board.SetSelected(i, true); Audio.Play("select");
                 if (hintBar.gameObject.activeSelf) hintBar.gameObject.SetActive(false);      // the player has understood: get the hint out of the way

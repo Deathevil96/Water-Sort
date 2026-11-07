@@ -27,6 +27,8 @@ namespace PaintSort.Core
             public List<int> Colors = new List<int>();
             public List<bool> Hidden = new List<bool>();
             public bool Covered;
+            /// <summary>The colour that must be completed (in another pot) to uncover this one; -1 = any.</summary>
+            public int CoverColor = -1;
             public bool Complete;
             public bool Extra;
 
@@ -35,7 +37,7 @@ namespace PaintSort.Core
             public bool IsFull => Colors.Count >= Capacity;
             public int TopColor => Colors.Count == 0 ? -1 : Colors[Colors.Count - 1];
 
-            public Pot Clone() => new Pot { Capacity = Capacity, Colors = new List<int>(Colors), Hidden = new List<bool>(Hidden), Covered = Covered, Complete = Complete, Extra = Extra };
+            public Pot Clone() => new Pot { Capacity = Capacity, Colors = new List<int>(Colors), Hidden = new List<bool>(Hidden), Covered = Covered, CoverColor = CoverColor, Complete = Complete, Extra = Extra };
         }
 
         sealed class Snapshot { public List<Pot> Pots; public int Moves; public int Unlocks; }
@@ -55,7 +57,7 @@ namespace PaintSort.Core
             Source = def;
             foreach (var c in def.Containers)
             {
-                var p = new Pot { Capacity = c.Capacity, Covered = c.Covered, Colors = new List<int>(c.Colors), Hidden = new List<bool>(c.Hidden) };
+                var p = new Pot { Capacity = c.Capacity, Covered = c.Covered, CoverColor = c.CoverColor, Colors = new List<int>(c.Colors), Hidden = new List<bool>(c.Hidden) };
                 while (p.Hidden.Count < p.Colors.Count) p.Hidden.Add(false);
                 Pots.Add(p);
             }
@@ -136,7 +138,7 @@ namespace PaintSort.Core
                 d.Complete = true; r.CompletedPot = to;
                 for (int k = 0; k < d.Hidden.Count; k++) d.Hidden[k] = false;
                 for (int i = 0; i < Pots.Count; i++)
-                    if (Pots[i].Covered) { Pots[i].Covered = false; TotalCoversUnlocked++; r.UnlockedPots.Add(i); RevealTop(Pots[i]); break; }
+                    if (Pots[i].Covered && (Pots[i].CoverColor < 0 || Pots[i].CoverColor == col)) { Pots[i].Covered = false; TotalCoversUnlocked++; r.UnlockedPots.Add(i); RevealTop(Pots[i]); break; }
             }
             r.Won = IsWon;
             return r;
@@ -224,7 +226,7 @@ namespace PaintSort.Core
                 if (i > 0) sb.Append(',');
                 var p = Pots[i];
                 if (p.Extra) sb.Append('+');
-                if (p.Covered) sb.Append('#');
+                if (p.Covered) { sb.Append('#'); if (p.CoverColor >= 0) sb.Append(p.CoverColor).Append(':'); }
                 if (p.Count == 0) sb.Append('-');
                 for (int k = 0; k < p.Count; k++)
                 {
@@ -261,7 +263,12 @@ namespace PaintSort.Core
                     string t = token;
                     var pot = new Pot();
                     if (t.StartsWith("+")) { pot.Extra = true; t = t.Substring(1); } else baseCount++;
-                    if (t.StartsWith("#")) { pot.Covered = true; t = t.Substring(1); }
+                    if (t.StartsWith("#"))
+                    {
+                        pot.Covered = true; t = t.Substring(1);
+                        int colon = t.IndexOf(':');
+                        if (colon >= 0) { pot.CoverColor = int.Parse(t.Substring(0, colon)); t = t.Substring(colon + 1); }
+                    }
                     if (t != "-")
                         foreach (var unit in t.Split('.'))
                         {
