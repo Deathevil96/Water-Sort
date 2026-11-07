@@ -14,6 +14,7 @@ namespace PaintSort.EditorTools
     /// <c>-aab</c> (Android App Bundle instead of APK). Exit code is 0 on success and 1 on failure.
     ///
     /// Versioning (see <c>version.json</c>): <c>versionName</c> is the human version (bump it with the Paint Sort/Version menu).
+    /// After every successful release build the patch of <c>versionName</c> goes up by itself (0.1.0 built, 0.1.1 next); "Set 1.0.0" is in the Version menu.
     /// <c>buildNumber</c> is the Play Store version code (1, 2, 3 ...). It goes up by one for every successful RELEASE build and is never
     /// touched by development builds, so a development build reuses the last release's code. A failed build does not use up a number.
     /// </summary>
@@ -32,6 +33,7 @@ namespace PaintSort.EditorTools
         [MenuItem("Paint Sort/Version/Show current")] public static void ShowVersion() { var v = ReadVersion(); Debug.Log("[VERSION] " + v.versionName + "  (last release build code " + v.buildNumber + ")"); }
         [MenuItem("Paint Sort/Version/Bump patch (0.1.0 -> 0.1.1)")] public static void BumpPatch() => Bump(2);
         [MenuItem("Paint Sort/Version/Bump minor (0.1.0 -> 0.2.0)")] public static void BumpMinor() => Bump(1);
+        [MenuItem("Paint Sort/Version/Set 1.0.0 (production release)")] public static void SetProduction() { var v = ReadVersion(); v.versionName = "1.0.0"; WriteVersion(v); Debug.Log("[VERSION] next release will be 1.0.0"); }
         [MenuItem("Paint Sort/Version/Bump major (0.1.0 -> 1.0.0)")] public static void BumpMajor() => Bump(0);
 
         public static void BuildAndroid() => Run(BuildTarget.Android, HasFlag("-development"), HasFlag("-aab"), false);
@@ -65,10 +67,11 @@ namespace PaintSort.EditorTools
                 var report = BuildPipeline.BuildPlayer(options);
                 var summary = report.summary;
                 bool ok = summary.result == BuildResult.Succeeded;
-                if (ok && !development) { version.buildNumber = code; WriteVersion(version); }
+                string builtName = version.versionName;
+                if (ok && !development) { version.buildNumber = code; version.versionName = NextPatch(builtName); WriteVersion(version); }
                 Debug.Log("[BUILD] " + summary.result + ", " + summary.totalErrors + " errors, " + summary.totalWarnings + " warnings, "
                           + (summary.totalSize / (1024 * 1024)) + " MB, " + summary.totalTime.TotalSeconds.ToString("F0") + " s"
-                          + (ok && !development ? "  | build code is now " + code : ""));
+                          + (ok && !development ? "  | build code is now " + code + ", next release will be " + version.versionName : ""));
                 if (!interactive) EditorApplication.Exit(ok ? 0 : 1);
             }
             catch (Exception e)
@@ -76,6 +79,13 @@ namespace PaintSort.EditorTools
                 Debug.LogError("[BUILD] failed: " + e);
                 if (!interactive) EditorApplication.Exit(1);
             }
+        }
+
+        /// <summary>After a successful release build the patch number goes up by itself, so the next release is already 0.1.1, 0.1.2 ... Use the Version menu for 1.0.0.</summary>
+        static string NextPatch(string name)
+        {
+            var bits = name.Split('.').Select(x => int.TryParse(x, out int n) ? n : 0).Concat(new[] { 0, 0, 0 }).Take(3).ToArray();
+            return bits[0] + "." + bits[1] + "." + (bits[2] + 1);
         }
 
         static void Bump(int part)   // 0 major, 1 minor, 2 patch
