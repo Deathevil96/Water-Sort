@@ -39,6 +39,11 @@ namespace PaintSort.EditorTools
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
 
+            // app icon: the default icon applies to every platform (Android adaptive layers can be added in Player Settings > Icons)
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Store/app_icon.png");
+            if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+            else Debug.LogWarning("[SETUP] Assets/Art/Store/app_icon.png not found; app icon left unchanged");
+
             AssetDatabase.SaveAssets();
             Debug.Log("[SETUP] " + Company + " / " + Product + " / " + AndroidPackage + " (version comes from version.json on build)");
         }

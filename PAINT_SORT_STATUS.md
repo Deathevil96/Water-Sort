@@ -52,3 +52,6 @@ Resume after restart (board saved after every move, also mid-pour) · level sele
 - Real art and sound (see above). TV launcher banner.
 - Tutorial hints still appear as text boxes (the boards themselves are hand-designed).
 - Text uses uGUI `Text`.
+
+## Artwork (imported)
+The ChatGPT art is wired in: pots, glossy buttons and panels, icons, colour-blind symbols, effects, logo and backdrops (portrait + landscape, scaled to cover the screen without stretching). `ArtSource/process_art.py` turns the raw images into the game files (names, transparency, crops); originals live in `ArtSource/ChatGPT/` (not tracked by git). `ArtImporter` applies sprite import settings automatically, including the 9-slice borders for `round` / `roundsoft`. The pot set must be supplied together; its measured shape is in `Art.ArtworkPot` (values from `ArtSource/pot_geometry.json`). Store art (app icon, adaptive layers, TV banner, feature graphic, splash) is in `Assets/Art/Store/`; the app icon is applied by **Paint Sort > Apply Player Settings**. Not done: Android adaptive-icon layers and the TV banner are not assigned in Player Settings, and the landscape / TV layouts have not been re-checked visually with the new art.

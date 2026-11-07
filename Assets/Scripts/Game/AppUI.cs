@@ -88,7 +88,12 @@ namespace PaintSort.Game
             tex.Apply(false, true);
             var custom = Resources.Load<Sprite>("Art/backdrop");
             var bg = UI.Img(root, "Backdrop", custom != null ? custom : Sprite.Create(tex, new Rect(0, 0, 1, 64), new Vector2(0.5f, 0.5f), 100), Color.white); UI.Stretch(bg.rectTransform); bg.preserveAspect = false;
-            if (custom != null) return;      // AI-made backdrop already has its own decoration
+            if (custom != null)
+            {
+                // supplied artwork already has its own decoration; it is scaled to cover the screen without stretching (see LayoutBackdrop)
+                backdropImage = bg; backdropPortrait = custom; backdropLandscape = Resources.Load<Sprite>("Art/backdrop_wide");
+                return;
+            }
             // decorative splats are anchored by percentage, so they spread over any screen shape
             var rng = new DetRandom(11);
             for (int i = 0; i < 9; i++)

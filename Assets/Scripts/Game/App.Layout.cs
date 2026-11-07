@@ -24,6 +24,7 @@ namespace PaintSort.Game
         /// <summary>Logical size (canvas units) of the safe area content is laid out in.</summary>
         public Vector2 SafeSize { get; private set; }
 
+        Image backdropImage; Sprite backdropPortrait, backdropLandscape;
         float bannerH = 120f;
         Vector2 boardSize;
         int lastW, lastH; Rect lastSafe;
@@ -108,8 +109,21 @@ namespace PaintSort.Game
             safeRoot.anchorMin = sa.min; safeRoot.anchorMax = sa.max;
             safeRoot.offsetMin = safeRoot.offsetMax = Vector2.zero;
             SafeSize = new Vector2(sa.width * lastW / scale, sa.height * lastH / scale);
+            LayoutBackdrop(new Vector2(lastW, lastH) / scale);
 
             Relayout();
+        }
+
+        /// <summary>Scales the supplied backdrop picture to cover the whole screen (cropping the overflow) instead of stretching it; landscape uses its own picture when there is one.</summary>
+        void LayoutBackdrop(Vector2 screenLogical)
+        {
+            if (backdropImage == null) return;
+            var sprite = IsLandscape && backdropLandscape != null ? backdropLandscape : backdropPortrait;
+            backdropImage.sprite = sprite;
+            var rt = backdropImage.rectTransform;
+            float cover = Mathf.Max(screenLogical.x / sprite.rect.width, screenLogical.y / sprite.rect.height);
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero; rt.sizeDelta = sprite.rect.size * cover;
         }
 
         // ------------------------------------------------------------------ layout

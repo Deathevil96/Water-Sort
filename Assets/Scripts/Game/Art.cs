@@ -44,7 +44,43 @@ namespace PaintSort.Game
 
         // ---- pot geometry (sprite pixel space, y up). Everything about the pot lives in this 256x384 frame ----
         public const int PotW = 256, PotH = 384;
-        public const float PotInnerBottom = 24f, UnitH = 76f; // 4 units = 304px; interior ends just below the rim
+        public const float PotInnerBottom = 24f, UnitH = 76f; // 4 units = 304px; interior ends just below the rim (procedural placeholder pot)
+
+        /// <summary>
+        /// Everything the board needs to know about the pot's shape. All values are in frame units (the pot's own W x H rectangle), measured from the
+        /// frame centre unless noted. The placeholder pot and the supplied artwork have different shapes, so the right set is picked by whether
+        /// Resources/Art/pot.png exists. The whole pot set (pot, pot_mask, pot_back, pot_cover, pot_shadow) must be supplied together.
+        /// </summary>
+        public sealed class PotGeometry
+        {
+            public float W, H;
+            public float InnerBottom;      // where paint starts, measured from the frame's bottom edge
+            public float FillHeight;       // height of a completely full pot of paint (all layers)
+            public float LipX, LipY;       // the pouring spout, relative to the centre (x is mirrored for the other side)
+            public float DstTopY;          // top of the rim, relative to the centre (where a pour stream aims)
+            public float ShadowY, ShadowW, ShadowH;
+            public float SlotWidth;        // fraction of W each pot needs side by side
+            public float GlossX;           // paint gloss streak position
+            public Vector2[] Corners;      // inside of the pot as a quad (bottom-left, bottom-right, top-left, top-right), for the tilted paint surface
+        }
+
+        public static readonly PotGeometry ProceduralPot = new PotGeometry
+        {
+            W = PotW, H = PotH, InnerBottom = PotInnerBottom, FillHeight = 304f, LipX = 100f, LipY = 178f, DstTopY = 178f,
+            ShadowY = -205f, ShadowW = 300f, ShadowH = 75f, SlotWidth = 0.86f, GlossX = -62f,
+            Corners = new[] { new Vector2(-88, -176), new Vector2(88, -176), new Vector2(-98, 170), new Vector2(98, 170) },
+        };
+
+        /// <summary>Measured from the supplied cup artwork (ArtSource/pot_geometry.json): frame 280 x 326.</summary>
+        public static readonly PotGeometry ArtworkPot = new PotGeometry
+        {
+            W = 280f, H = 326.2f, InnerBottom = 16f, FillHeight = 237f, LipX = 118f, LipY = 131f, DstTopY = 157f,
+            ShadowY = -172f, ShadowW = 330f, ShadowH = 70f, SlotWidth = 0.98f, GlossX = -50f,
+            Corners = new[] { new Vector2(-72, -147), new Vector2(72, -147), new Vector2(-108, 90), new Vector2(108, 90) },
+        };
+
+        static PotGeometry potGeometry;
+        public static PotGeometry Pot => potGeometry ?? (potGeometry = Resources.Load<Sprite>("Art/pot") != null ? ArtworkPot : ProceduralPot);
 
         public static Sprite Get(string name, Func<Sprite> make)
         {

@@ -29,10 +29,10 @@ namespace PaintSort.Game
 
         public void Build(int capacity)
         {
-            Capacity = capacity; unitH = 304f / capacity;
-            Rt = (RectTransform)transform; Rt.sizeDelta = new Vector2(Art.PotW, Art.PotH);
+            Capacity = capacity; unitH = Art.Pot.FillHeight / capacity;
+            Rt = (RectTransform)transform; Rt.sizeDelta = new Vector2(Art.Pot.W, Art.Pot.H);
             var hit = gameObject.AddComponent<Image>(); hit.color = new Color(0, 0, 0, 0); hit.raycastTarget = true;
-            var sh = UI.Img(Rt, "Shadow", Art.PotShadow, Color.white); UI.Place(sh.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -205), new Vector2(300, 75));
+            var sh = UI.Img(Rt, "Shadow", Art.PotShadow, Color.white); UI.Place(sh.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, Art.Pot.ShadowY), new Vector2(Art.Pot.ShadowW, Art.Pot.ShadowH));
             focus = UI.Img(Rt, "Focus", Art.PotGlass, UI.FocusRing); UI.Stretch(focus.rectTransform, -26, -22, -26, -22); focus.gameObject.SetActive(false);   // keyboard / gamepad cursor
             glow = UI.Img(Rt, "Glow", Art.PotGlass, new Color(1f, 0.85f, 0.2f, 0f)); UI.Stretch(glow.rectTransform, -16, -14, -16, -14);
             var back = UI.Img(Rt, "Back", Art.PotBack, Color.white); UI.Stretch(back.rectTransform);
@@ -47,7 +47,7 @@ namespace PaintSort.Game
                 var line = UI.Img(s.transform, "Line", Art.White, new Color(0.1f, 0.05f, 0.2f, 0.28f)); line.preserveAspect = false;
                 UI.Place(line.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(700, 5));
                 var gl = UI.Img(s.transform, "Gloss", Art.Round, new Color(1, 1, 1, 0.3f), true); gl.preserveAspect = false;
-                UI.Place(gl.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-62, 0), new Vector2(16, unitH - 22));
+                UI.Place(gl.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(Art.Pot.GlossX, 0), new Vector2(16, unitH - 22));
                 var sy = UI.Img(s.transform, "Sym", Art.Symbol(0), new Color(1, 1, 1, 0.9f)); UI.Place(sy.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(46, 46));
                 var q = UI.Txt(s.transform, "?", 70, Color.white); q.rectTransform.anchorMin = q.rectTransform.anchorMax = new Vector2(0.5f, 0.5f); q.rectTransform.sizeDelta = new Vector2(100, 100); q.rectTransform.anchoredPosition = Vector2.zero;
                 segs[i] = s; syms[i] = sy; qs[i] = q; lines[i] = line;
@@ -98,7 +98,7 @@ namespace PaintSort.Game
         public void ShowUnits(List<UnitVis> units, float? surfaceY = null)
         {
             float total = 0; for (int i = 0; i < units.Count; i++) total += units[i].h;
-            float baseY = surfaceY.HasValue ? surfaceY.Value - total * unitH : Art.PotInnerBottom - Art.PotH * 0.5f;
+            float baseY = surfaceY.HasValue ? surfaceY.Value - total * unitH : Art.Pot.InnerBottom - Art.Pot.H * 0.5f;
             float cum = 0;
             for (int i = 0; i < Capacity; i++)
             {
@@ -154,7 +154,6 @@ namespace PaintSort.Game
         public bool Busy { get; private set; }
         Vector2 area;
         readonly List<UnitVis> scratchSrc = new List<UnitVis>(8), scratchDst = new List<UnitVis>(8);   // reused every animation frame (no per-frame allocation)
-        static readonly Vector2[] PotCorners = { new Vector2(-88, -176), new Vector2(88, -176), new Vector2(-98, 170), new Vector2(98, 170) };
         const float RowSwitchGain = 1.12f;                                                             // an extra row of pots must be at least 12% larger to win
         const float MaxPotScale = 1f;                                                                  // 1.0 = the pot sprite at native resolution
 
@@ -231,11 +230,11 @@ namespace PaintSort.Game
             for (int rows = 1; rows <= 3; rows++)
             {
                 int cols = Mathf.CeilToInt(n / (float)rows);
-                float s = Mathf.Min(area.x / (cols * (Art.PotW * 0.86f + gapX)), area.y / (rows * (Art.PotH + gapY)), MaxPotScale);
+                float s = Mathf.Min(area.x / (cols * (Art.Pot.W * Art.Pot.SlotWidth + gapX)), area.y / (rows * (Art.Pot.H + gapY)), MaxPotScale);
                 if (best <= 0f || s > best * RowSwitchGain) { best = s; bestRows = rows; }   // more rows only when the pots get clearly bigger
             }
             int perRow = Mathf.CeilToInt(n / (float)bestRows);
-            float potW = Art.PotW * 0.86f * best, potH = Art.PotH * best;
+            float potW = Art.Pot.W * Art.Pot.SlotWidth * best, potH = Art.Pot.H * best;
             float rowH = potH + gapY * best;
             float topY = (bestRows * rowH - gapY * best) * 0.5f - potH * 0.5f;
             int idx = 0;
@@ -315,8 +314,8 @@ namespace PaintSort.Game
             src.Rt.SetAsLastSibling(); stream.transform.SetSiblingIndex(src.Rt.GetSiblingIndex()); // stream below source, above everything else
             int dir = dst.RestPos.x >= src.RestPos.x ? 1 : -1;
             float s = src.Scale;
-            Vector2 lipLocal = new Vector2(100f * dir, 178f) * s;
-            Vector2 dstTop = dst.RestPos + new Vector2(0, 178f * dst.Scale);
+            Vector2 lipLocal = new Vector2(Art.Pot.LipX * dir, Art.Pot.LipY) * s;
+            Vector2 dstTop = dst.RestPos + new Vector2(0, Art.Pot.DstTopY * dst.Scale);
             Vector2 target = dstTop + new Vector2(-24f * dir * dst.Scale, 62f * s);
             Color col = Art.Paint[r.Color % Art.Paint.Length];
             int srcCountAfter = srcBefore.Count - r.Amount;
@@ -359,7 +358,7 @@ namespace PaintSort.Game
 
                 // stream from the lip down to the destination paint surface
                 Vector2 lipPos = src.Rt.anchoredPosition + Rot(lipLocal, -dir * ang);
-                float surfY = dst.RestPos.y + (Art.PotInnerBottom - Art.PotH * 0.5f + dstFill * (304f / dst.Capacity)) * dst.Scale;
+                float surfY = dst.RestPos.y + (Art.Pot.InnerBottom - Art.Pot.H * 0.5f + dstFill * (Art.Pot.FillHeight / dst.Capacity)) * dst.Scale;
                 float grow = Mathf.Clamp01(t / (0.12f / spd)); float shrink = 1f - Mathf.Clamp01((t - (pourDur - 0.12f / spd)) / (0.12f / spd));
                 float topY = Mathf.Lerp(lipPos.y, surfY, 1f - shrink);
                 float botY = Mathf.Lerp(lipPos.y, surfY, grow);
@@ -406,12 +405,12 @@ namespace PaintSort.Game
         /// <summary>Surface height (pot-centre-relative, level in the world) of the paint while tilted; blends with the resting height.</summary>
         float SurfaceY(float angDeg, int dir, float units, float cap, float blend)
         {
-            float restS = Art.PotInnerBottom - Art.PotH * 0.5f + units * (304f / cap);
+            float restS = Art.Pot.InnerBottom - Art.Pot.H * 0.5f + units * (Art.Pot.FillHeight / cap);
             if (angDeg < 0.5f) return restS;
             float a = -dir * angDeg;
-            float lip = Rot(new Vector2(100f * dir, 178f), a).y;
+            float lip = Rot(new Vector2(Art.Pot.LipX * dir, Art.Pot.LipY), a).y;
             float low = float.MaxValue;
-            for (int i = 0; i < PotCorners.Length; i++) low = Mathf.Min(low, Rot(PotCorners[i], a).y);
+            var corners = Art.Pot.Corners; for (int i = 0; i < corners.Length; i++) low = Mathf.Min(low, Rot(corners[i], a).y);
             float fill = Mathf.Clamp01(units / cap);
             float tilted = Mathf.Lerp(low + 10f, lip - 6f, fill);
             return Mathf.Lerp(restS, tilted, Mathf.Clamp01(blend));

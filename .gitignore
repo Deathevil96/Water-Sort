@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Raw AI-generated originals (large); the processed game art and the script that makes it are tracked
+/ArtSource/ChatGPT/
