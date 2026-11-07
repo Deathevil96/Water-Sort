@@ -51,7 +51,7 @@ namespace PaintSort.EditorTools
                 PlayerSettings.Android.bundleVersionCode = code;
                 PlayerSettings.iOS.buildNumber = code.ToString();
 
-                string output = ArgValue("-output") ?? DefaultOutput(target, bundle);
+                string output = ArgValue("-output") ?? DefaultOutput(target, bundle, development, code);
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)) ?? OutputDir);
                 if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = bundle;
                 if (target == BuildTarget.Android && !development) ApplyReleaseSigning();
@@ -110,13 +110,15 @@ namespace PaintSort.EditorTools
 
         static void WriteVersion(VersionFile v) => File.WriteAllText(VersionPath, JsonUtility.ToJson(v, true) + "\n");
 
-        static string DefaultOutput(BuildTarget target, bool bundle)
+        /// <summary>File names are PalettePour_&lt;build code&gt;_release or PalettePour_&lt;build code&gt;_debug, so builds never overwrite each other.</summary>
+        static string DefaultOutput(BuildTarget target, bool bundle, bool development, int code)
         {
+            string name = "PalettePour_" + code + (development ? "_debug" : "_release");
             switch (target)
             {
-                case BuildTarget.Android: return Path.Combine(OutputDir, bundle ? "PalettePour.aab" : "PalettePour.apk");
-                case BuildTarget.StandaloneWindows64: return Path.Combine(OutputDir, "Windows", "PalettePour.exe");
-                default: return Path.Combine(OutputDir, target.ToString());
+                case BuildTarget.Android: return Path.Combine(OutputDir, name + (bundle ? ".aab" : ".apk"));
+                case BuildTarget.StandaloneWindows64: return Path.Combine(OutputDir, "Windows", name, name + ".exe");
+                default: return Path.Combine(OutputDir, target.ToString(), name);
             }
         }
 
