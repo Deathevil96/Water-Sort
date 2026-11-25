@@ -18,10 +18,10 @@ State as of 2026-11-24/25. Full notes live in `docs/claude-memory/` (copy of Cla
 - Monetization: ads only, no IAP.
 
 ## Still to do
-1. Unity: focus the Editor so it resolves the AdMob package and compiles; fix any errors.
+1. ~~Unity resolves AdMob package and compiles~~ done 2026-11-25, no errors.
 2. Import ~/Downloads/FirebaseAnalytics.unitypackage. UNTICK the `ExternalDependencyManager` folder (EDM already comes from OpenUPM). Then add `PP_FIREBASE` to Android scripting defines and run Android Resolver.
 3. AdMob > Privacy & messaging > European regulations: add Palette Pour to the message (privacy URL = GitHub policy) and Publish changes (user does this; it is live for the other 3 apps).
-4. app-ads.txt: host `google.com, pub-7841394126110372, DIRECT, f08c47fec0942fa0` at the root of a developer website and add that site in Play store settings.
+4. ~~app-ads.txt~~ done: deathevil96.github.io serves it; set as the Play website.
 5. Play upload key reset (see Signing keys below).
 6. Set version 1.0.0, build release AAB, test on a device (consent form, banner, rewarded, interstitial), then send for review in Publishing overview.
 
