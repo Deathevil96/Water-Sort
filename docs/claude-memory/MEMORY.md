@@ -1,6 +1,6 @@
 - [Paint Sort project](paint-sort-project.md) — Unity puzzle game: layout of code, how it was verified, what is still open
 - [Game name: Palette Pour](game-name-palette-pour.md) — renamed from Paint Magic Sort (trademark); package, logo status
-- [Internet/ads/store plan](internet-ads-store-plan.md) — ads-only; AdMob+Firebase set up 2026-11-25; next: import Firebase pkg, GDPR msg, 1.0.0 build
+- [Internet/ads/store plan](internet-ads-store-plan.md) — ads-only; release AAB 1.0.0 code 2 built 2026-11-26, user uploads to Production
 - [Release versioning and builds](release-versioning-and-builds.md) — build naming, auto patch bump (next 0.1.1, production 1.0.0), AAB location
 - [Promo ad scenarios plan](promo-ad-scenarios-plan.md) — debug-menu clickbait ad videos; user supplies template from another project
 - [Signing key leak + new key](signing-key-in-repo-cleanup.md) — old key exposed; new key in Signing/new/, swap after Play upload key reset
