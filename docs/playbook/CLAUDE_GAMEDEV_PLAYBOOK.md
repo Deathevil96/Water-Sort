@@ -146,6 +146,7 @@ Apply to any Unity mobile game, 2D or 3D. Items marked (used) were done in a shi
 - **New shaders show cyan placeholders** until async compile finishes; step more frames before judging a screenshot.
 - **Keep a "Decisions (do not re-litigate)" list** in the project `CLAUDE.md` for settled design choices, so sessions do not reopen them.
 - **Keep memory in the repo** (`.claude/memory/` with an index) so a new machine or session resumes instantly; keep `BACKLOG.md` (done/open) and `DEVLOGS.md` beside it.
+- **Keep the playbook in two places:** `~/.claude/GameDevPlaybook.md` (loaded by Claude Code on this machine) and the account skill `game-dev-playbook` (claude.ai > Plugins, "By you", which syncs to claude.ai, the desktop app and Claude Code everywhere). After editing the playbook, rebuild the skill (`SKILL.md` = frontmatter + this file) and upload it again via Plugins > Add > Upload plugin. Copy it to the repo too (`docs/playbook/`).
 - **Report honestly what was and was not verified.** Say when something was wired but not seen on screen.
 - **Art prompts must spell out delivery details:** 2D sheets on a flat solid magenta (#FF00FF) background, no checkerboard/gradient/glow, pieces separated; 3D: which parts are separate meshes, orientation, pivot. Process sheets with repo-relative scripts (`Tools/art/*.py`). When the human says "added assets": list new files, inspect, wire in, verify with a Play-mode screenshot.
 
