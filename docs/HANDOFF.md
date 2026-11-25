@@ -28,3 +28,6 @@ State as of 2026-11-24/25. Full notes live in `docs/claude-memory/` (copy of Cla
 Passphrase is NOT in the repo (saved on the PC Desktop as palettepour-signing-passphrase.txt; keep it in a password manager).
 Restore on Mac, from repo root:
 `openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in docs/signing.tar.gz.enc | tar xz`
+
+Passphrase is in `docs/signing-passphrase.txt` (user chose convenience over secrecy).
+**TODO once the keystore is set up in Unity on the Mac: delete `docs/signing.tar.gz.enc` and `docs/signing-passphrase.txt` from the repo (git rm + push).** They stay in git history, so if the repo is public, treat the key as exposed.
