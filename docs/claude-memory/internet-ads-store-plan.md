@@ -28,3 +28,5 @@ Closed testing is done and production access is granted (2026-11-24). Build 1 sh
 **Why:** declarations must match behaviour or the app can be rejected.
 
 **How to apply:** do not ship a release with the Google test ad ids; never click own live ads. Related: [[release-versioning-and-builds]], [[paint-sort-project]].
+
+**Status 2026-11-25:** all of the above code is committed and pushed (b33b3eb). User moved to a MacBook, see [[mac-handoff-2026-11-25]]. AdMob/Firebase account steps still not done as of this note.

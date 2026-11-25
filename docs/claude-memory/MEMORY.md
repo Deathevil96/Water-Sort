@@ -4,3 +4,4 @@
 - [Release versioning and builds](release-versioning-and-builds.md) — build naming, auto patch bump (next 0.1.1, production 1.0.0), AAB location
 - [Promo ad scenarios plan](promo-ad-scenarios-plan.md) — debug-menu clickbait ad videos; user supplies template from another project
 - [Signing key in repo cleanup](signing-key-in-repo-cleanup.md) — delete encrypted keystore + passphrase from repo once set in Unity on Mac
+- [Mac handoff 2026-11-25](mac-handoff-2026-11-25.md) — all pushed to GitHub; handoff doc, keystore, memory copy locations
