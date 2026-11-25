@@ -134,7 +134,7 @@ namespace PaintSort.Game
             float W = SafeSize.x, H = SafeSize.y;
             // The banner strip is only a placeholder until an ad SDK exists, so shipped (non-development) builds reserve no space for it.
             // WHEN ADS ARE ADDED set this to true for release builds as well.
-            const bool ReserveBannerInRelease = false;
+            const bool ReserveBannerInRelease = true;
             bool reserveBanner = ReserveBannerInRelease || Application.isEditor || Debug.isDebugBuild;
             bannerH = !reserveBanner || Device == DeviceClass.Tv ? 0f : IsLandscape ? 90f : 120f;
             bannerRoot.gameObject.SetActive(bannerH > 0f);

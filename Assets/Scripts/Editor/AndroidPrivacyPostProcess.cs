@@ -17,7 +17,7 @@ namespace PaintSort.EditorTools
     /// </summary>
     public sealed class AndroidPrivacyPostProcess : IPostGenerateGradleAndroidProject
     {
-        public const bool ShipWithInternet = false;
+        public const bool ShipWithInternet = true;
 
         public int callbackOrder => 10000;
 

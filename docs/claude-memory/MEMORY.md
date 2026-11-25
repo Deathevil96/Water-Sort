@@ -1,0 +1,5 @@
+- [Paint Sort project](paint-sort-project.md) — Unity puzzle game: layout of code, how it was verified, what is still open
+- [Game name: Palette Pour](game-name-palette-pour.md) — renamed from Paint Magic Sort (trademark); package, logo status
+- [Internet/ads/store plan](internet-ads-store-plan.md) — build 1 is offline; checklist for adding ads, Firebase and store near end of closed testing
+- [Release versioning and builds](release-versioning-and-builds.md) — build naming, auto patch bump (next 0.1.1, production 1.0.0), AAB location
+- [Promo ad scenarios plan](promo-ad-scenarios-plan.md) — debug-menu clickbait ad videos; user supplies template from another project

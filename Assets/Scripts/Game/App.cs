@@ -70,6 +70,9 @@ namespace PaintSort.Game
             Wallet = new GoldWallet(Clock); Lives = new LivesModel(Cfg, Clock); Daily = new DailyRewardModel(Cfg, Clock); AdPol = new AdPolicy(Cfg, Clock);
             Audio = new AudioService(gameObject);
             MockAds = new MockAdService(AdPol, ShowFakeAd); Ads = MockAds;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            var adMob = new AdMobService(AdPol); Ads = adMob; adMob.Start();   // real ads on devices; the Editor keeps the mock
+#endif
 #if UNITY_EDITOR || DEBUG
             Purchases = new FakePurchaseService();
 #endif
