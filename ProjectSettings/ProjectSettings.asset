@@ -740,7 +740,7 @@ PlayerSettings:
   webEnableSubmoduleStrippingCompatibility: 0
   webProgressiveAssetLoading: 0
   scriptingDefineSymbols:
-    Android: 
+    Android: PP_FIREBASE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

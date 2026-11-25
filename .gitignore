@@ -122,3 +122,10 @@ InitTestScene*.unity*
 /Assets/google-services.json
 /Assets/google-services.json.meta
 /Assets/StreamingAssets/google-services-desktop.json*
+
+# Firebase desktop natives (Editor/desktop only, ~180 MB; game uses Firebase on Android only). Re-import FirebaseAnalytics.unitypackage on a new machine to restore.
+/Assets/Firebase/Plugins/x86_64/
+/Assets/Firebase/Plugins/x86_64.meta
+# EDM generated local maven repo
+/Assets/GeneratedLocalRepo/
+/Assets/GeneratedLocalRepo.meta
