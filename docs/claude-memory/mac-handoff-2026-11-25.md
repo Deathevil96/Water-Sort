@@ -9,7 +9,7 @@ The user continues Palette Pour on a MacBook from 2026-11-25. All work (AdMob co
 
 - `docs/HANDOFF.md`: done / to-do list and Mac notes.
 - `docs/claude-memory/`: copy of these memory files (memory itself is local to the Windows PC; on the Mac read this folder).
-- Release keystore: `docs/signing.tar.gz.enc` + `docs/signing-passphrase.txt`; restore with `openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in docs/signing.tar.gz.enc | tar xz`. Delete both from the repo once the key is set in Unity, see [[signing-key-in-repo-cleanup]].
+- Release keystore: restored to `Signing/` on the Mac 2026-11-25; the repo copy was deleted, see [[signing-key-in-repo-cleanup]].
 - On the Mac: re-run Android Resolver (Assets > External Dependency Manager); Unity needs Android build support.
 
 **Why:** the user switched machines and had no time to copy files by hand; prefers convenience.

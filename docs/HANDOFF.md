@@ -20,14 +20,12 @@ State as of 2026-11-24/25. Full notes live in `docs/claude-memory/` (copy of Cla
 7. Store/Play Billing only if decided.
 
 ## Mac notes
-- Release signing keystore is in git-ignored `Signing/` - NOT in the repo; copy it over manually (needed for AAB builds).
+- Release signing keystore is in git-ignored `Signing/` - NOT in the repo (restored on the Mac 2026-11-25).
 - Android Resolver may need to re-run (Assets > External Dependency Manager) after opening in Unity on Mac.
 
-## Signing keystore (encrypted)
-`docs/signing.tar.gz.enc` = AES-256 (openssl, pbkdf2) tarball of `Signing/` (keystore + password file).
-Passphrase is NOT in the repo (saved on the PC Desktop as palettepour-signing-passphrase.txt; keep it in a password manager).
-Restore on Mac, from repo root:
-`openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in docs/signing.tar.gz.enc | tar xz`
-
-Passphrase is in `docs/signing-passphrase.txt` (user chose convenience over secrecy).
-**TODO once the keystore is set up in Unity on the Mac: delete `docs/signing.tar.gz.enc` and `docs/signing-passphrase.txt` from the repo (git rm + push).** They stay in git history, so if the repo is public, treat the key as exposed.
+## Signing keys (2026-11-25)
+The old upload key and its passphrase were pushed to this PUBLIC repo for the move, so treat the old key as exposed. Both files were removed from the repo, but they are still in git history.
+- `Signing/palettepour-upload.jks`: OLD upload key, still the one release builds use (SHA-256 52:81:50:...:B7:33).
+- `Signing/new/`: NEW upload key (alias `palettepour`, SHA-256 27:BA:1B:...:29:AD) and `upload_certificate.pem`.
+- Backup of both: `~/Documents/PalettePour-Signing-Backup/` on the Mac. Keep a second copy somewhere off this machine.
+- **TODO (user):** Play Console > Test and release > App integrity > App signing > Request upload key reset, attach `Signing/new/upload_certificate.pem`. Once Google approves it, move the old files to `Signing/old/` and the files in `Signing/new/` up into `Signing/`. Do not swap before approval, or uploads get rejected.
