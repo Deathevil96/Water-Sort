@@ -7,15 +7,20 @@ using UnityEngine;
 namespace PaintSort.Game
 {
     /// <summary>
-    /// AdMob ad unit ids. These are Google's public TEST ids. Before the production build replace them with the real ids from the AdMob console
-    /// (and set the real app id in Assets/GoogleMobileAds/Resources/GoogleMobileAdsSettings via the menu Paint Sort/Ads/Set AdMob app id).
-    /// Never click your own live ads.
+    /// AdMob ad unit ids (app "Palette Pour: Sort Puzzle", app id ca-app-pub-7841394126110372~2192223412).
+    /// Editor and development builds use Google's public TEST ids; only release builds get the real ids. Never click your own live ads.
     /// </summary>
     public static class AdIds
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         public const string Banner = "ca-app-pub-3940256099942544/6300978111";
         public const string Rewarded = "ca-app-pub-3940256099942544/5224354917";
         public const string Interstitial = "ca-app-pub-3940256099942544/1033173712";
+#else
+        public const string Banner = "ca-app-pub-7841394126110372/6929865577";
+        public const string Rewarded = "ca-app-pub-7841394126110372/4682976188";
+        public const string Interstitial = "ca-app-pub-7841394126110372/2519847272";
+#endif
     }
 
     /// <summary>Real AdMob implementation of <see cref="IAdService"/>. Rewarded ads are preloaded; a banner sits at the bottom of the screen.</summary>
@@ -29,6 +34,8 @@ namespace PaintSort.Game
         bool loadingRewarded, loadingInterstitial;
 
         public bool BannerVisible => bannerShown;
+        /// <summary>Raised once the consent flow allows data use (the SDK is starting). Analytics collection is switched on here.</summary>
+        public event Action ConsentReady;
 
         public AdMobService(AdPolicy p) { policy = p; }
 
@@ -57,6 +64,8 @@ namespace PaintSort.Game
         {
             if (initialized) return;
             initialized = true;
+            ConsentReady?.Invoke();
+            MobileAds.RaiseAdEventsOnUnityMainThread = true;   // ad callbacks touch Unity UI; without this they arrive on a Java thread
             MobileAds.Initialize(_ =>
             {
                 Log.I("ADS", "AdMob initialized");
@@ -135,6 +144,23 @@ namespace PaintSort.Game
             ad.OnAdFullScreenContentClosed += Finish;
             ad.OnAdFullScreenContentFailed += e => { if (finished) return; finished = true; done?.Invoke(); ad.Destroy(); LoadInterstitial(); };
             ad.Show();
+        }
+
+        /// <summary>Settings > Privacy: lets the player change their consent choice (required by Google wherever the consent form applies).</summary>
+        public void ShowPrivacyOptions(Action<string> done)
+        {
+            try
+            {
+                if (ConsentInformation.PrivacyOptionsRequirementStatus != PrivacyOptionsRequirementStatus.Required)
+                { done?.Invoke("No privacy choices are needed in your region. Ads can be reset in your phone's Google settings."); return; }
+                ConsentForm.ShowPrivacyOptionsForm(err =>
+                {
+                    if (err != null) { Log.W("ADS", "Privacy options form: " + err.Message); done?.Invoke("Could not open privacy options. Please try again."); return; }
+                    done?.Invoke(null);
+                    if (ConsentInformation.CanRequestAds()) InitSdk();
+                });
+            }
+            catch (Exception e) { Log.W("ADS", "Privacy options failed: " + e.Message); done?.Invoke("Could not open privacy options."); }
         }
     }
 }

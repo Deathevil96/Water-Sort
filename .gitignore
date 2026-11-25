@@ -117,3 +117,8 @@ InitTestScene*.unity*
 /ArtSource/ChatGPT/
 /ArtSource/old_name/
 /Signing/
+
+# Firebase config (public repo; keep a copy outside git)
+/Assets/google-services.json
+/Assets/google-services.json.meta
+/Assets/StreamingAssets/google-services-desktop.json*

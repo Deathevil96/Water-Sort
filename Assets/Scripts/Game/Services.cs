@@ -93,6 +93,8 @@ namespace PaintSort.Game
         bool BannerVisible { get; }
         void ShowRewarded(string placement, Action<AdResult> done);
         void ShowInterstitial(Action done);
+        /// <summary>Opens the ad consent / privacy choices form; <paramref name="done"/> gets a message to show, or null.</summary>
+        void ShowPrivacyOptions(Action<string> done);
     }
 
     /// <summary>Development stand-in: shows a clearly labelled fake ad. Replace with a real SDK implementation of IAdService; test ad units only until release.</summary>
@@ -125,6 +127,8 @@ namespace PaintSort.Game
             if (!policy.CooldownReady) { done?.Invoke(); return; }
             fakeAdUi(r => { if (r == AdResult.Completed) policy.MarkShown(); done?.Invoke(); });
         }
+
+        public void ShowPrivacyOptions(Action<string> done) => done?.Invoke("Privacy choices open here on a phone (Google consent form).");
     }
 
     // ----------------------------------------------------------------------- purchases (scaffold; real billing stays off behind a flag)

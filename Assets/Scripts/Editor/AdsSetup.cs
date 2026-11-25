@@ -10,7 +10,12 @@ namespace PaintSort.EditorTools
     public static class AdsSetup
     {
         public const string TestAndroidAppId = "ca-app-pub-3940256099942544~3347511713";
+        /// <summary>Real app id. Safe in development builds too: they use test ad unit ids (see AdIds).</summary>
+        public const string RealAndroidAppId = "ca-app-pub-7841394126110372~2192223412";
         const string AssetPath = "Assets/GoogleMobileAds/Resources/GoogleMobileAdsSettings.asset";
+
+        [MenuItem("Paint Sort/Ads/Set AdMob real app id")]
+        public static void SetRealAppId() => SetAppId(RealAndroidAppId);
 
         [MenuItem("Paint Sort/Ads/Set AdMob test app id")]
         public static void SetTestAppId() => SetAppId(TestAndroidAppId);

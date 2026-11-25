@@ -71,7 +71,12 @@ namespace PaintSort.Game
             Audio = new AudioService(gameObject);
             MockAds = new MockAdService(AdPol, ShowFakeAd); Ads = MockAds;
 #if UNITY_ANDROID && !UNITY_EDITOR
-            var adMob = new AdMobService(AdPol); Ads = adMob; adMob.Start();   // real ads on devices; the Editor keeps the mock
+            var adMob = new AdMobService(AdPol); Ads = adMob;   // real ads on devices; the Editor keeps the mock
+#if PP_FIREBASE
+            var firebase = new FirebaseAnalyticsService(); Analytics = firebase;
+            adMob.ConsentReady += firebase.EnableCollection;   // analytics starts only after the consent flow
+#endif
+            adMob.Start();
 #endif
 #if UNITY_EDITOR || DEBUG
             Purchases = new FakePurchaseService();

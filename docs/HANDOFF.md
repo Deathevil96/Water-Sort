@@ -10,14 +10,20 @@ State as of 2026-11-24/25. Full notes live in `docs/claude-memory/` (copy of Cla
 - Menu "Paint Sort/Ads/Set AdMob test app id" (AdsSetup.cs) writes the TEST app id into `Assets/GoogleMobileAds/Resources/GoogleMobileAdsSettings.asset`.
 - Real store (Play Billing) undecided; fake Shop stays hidden.
 
+## Done 2026-11-25 (Mac)
+- AdMob app "Palette Pour: Sort Puzzle" (app id ca-app-pub-7841394126110372~2192223412, not linked to a store yet). Units: Banner .../6929865577, Interstitial .../2519847272, Rewarded .../4682976188. Release builds use them; Editor/dev builds keep Google test ids.
+- Firebase project `palette-pour-9dab5` with Android app; `Assets/google-services.json` (git-ignored, backup in ~/Documents/PalettePour-Signing-Backup/).
+- Code: FirebaseAnalyticsService (behind PP_FIREBASE define; collection off until consent), Settings > Privacy opens the UMP options form, AdMob events on main thread.
+- Privacy policy rewritten for ads + analytics. Play Console saved (NOT sent for review): Ads = Yes, Advertising ID = Yes, Data safety, listing text.
+- Monetization: ads only, no IAP.
+
 ## Still to do
-1. AdMob: add app (`com.misalinteractive.palettepour`), create Banner/Rewarded/Interstitial units; replace `AdIds` + call `AdsSetup.SetAppId` with real ids. (Do NOT ship test ids; never click own live ads.)
-2. Firebase: create Palette Pour project + Android app, get `google-services.json`, add Firebase Unity SDK (`FirebaseAnalytics.unitypackage`, not on OpenUPM), replace `LogAnalytics` with a Firebase `IAnalytics`.
-3. Rewrite `docs/privacy-policy.md` for ads + analytics, push.
-4. Play Console: Ads = Yes, Data safety, Advertising ID = Yes, listing mentions ads.
-5. Set version 1.0.0 (menu "Paint Sort/Version/Set 1.0.0"), build release AAB, on-device check, upload to production.
-6. app-ads.txt: needs website domain + ad publisher id.
-7. Store/Play Billing only if decided.
+1. Unity: focus the Editor so it resolves the AdMob package and compiles; fix any errors.
+2. Import ~/Downloads/FirebaseAnalytics.unitypackage. UNTICK the `ExternalDependencyManager` folder (EDM already comes from OpenUPM). Then add `PP_FIREBASE` to Android scripting defines and run Android Resolver.
+3. AdMob > Privacy & messaging > European regulations: add Palette Pour to the message (privacy URL = GitHub policy) and Publish changes (user does this; it is live for the other 3 apps).
+4. app-ads.txt: host `google.com, pub-7841394126110372, DIRECT, f08c47fec0942fa0` at the root of a developer website and add that site in Play store settings.
+5. Play upload key reset (see Signing keys below).
+6. Set version 1.0.0, build release AAB, test on a device (consent form, banner, rewarded, interstitial), then send for review in Publishing overview.
 
 ## Mac notes
 - Release signing keystore is in git-ignored `Signing/` - NOT in the repo (restored on the Mac 2026-11-25).

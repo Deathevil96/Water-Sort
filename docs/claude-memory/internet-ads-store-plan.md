@@ -30,3 +30,5 @@ Closed testing is done and production access is granted (2026-11-24). Build 1 sh
 **How to apply:** do not ship a release with the Google test ad ids; never click own live ads. Related: [[release-versioning-and-builds]], [[paint-sort-project]].
 
 **Status 2026-11-25:** all of the above code is committed and pushed (b33b3eb). User moved to a MacBook, see [[mac-handoff-2026-11-25]]. AdMob/Firebase account steps still not done as of this note.
+
+**Status 2026-11-25 (Mac session):** user chose ads only (no IAP; Shop stays hidden). Done: AdMob app + 3 real units (ids in `AdIds`, release-only via `#if UNITY_EDITOR || DEVELOPMENT_BUILD`), real app id in GoogleMobileAdsSettings, Firebase project `palette-pour-9dab5` + google-services.json (git-ignored), `FirebaseAnalyticsService` behind `PP_FIREBASE`, privacy policy rewritten, Play Console Ads/Ad ID/Data safety/listing SAVED but not sent for review. Open items are listed in `docs/HANDOFF.md` "Still to do". Publishing the shared AdMob GDPR message was blocked by auto mode; the user must do it.

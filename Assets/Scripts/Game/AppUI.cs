@@ -756,7 +756,7 @@ namespace PaintSort.Game
             Toggle(c, "Reduced motion", D.reducedMotion, v => { D.reducedMotion = v; Persist(); });
             PopBtn(c, Loc.NameOf(Loc.Language), UI.Purple, 820, 100, () => { Loc.SetLanguage(Loc.NextLanguage()); Persist(); Toast(Loc.T("Language changes fully the next time you open the game.")); OpenSettings(); }, go, null, 40);
             var row = BtnRow(c, 860, 110);
-            RowBtn(row, "Privacy", UI.Grey, 410, 100, () => Toast("Consent options will appear once an ad SDK is connected."), null, 36);
+            RowBtn(row, "Privacy", UI.Grey, 410, 100, () => Ads.ShowPrivacyOptions(m => { if (m != null) Toast(m); }), null, 36);
             RowBtn(row, "Restore Buys", UI.Grey, 410, 100, () => Purchases.Restore(m => Toast(m)), null, 34);
             Line(c, Application.productName + "  v" + Application.version, 28, UI.Ink, 820, 40);
             PopBtn(c, "Reset Progress", UI.Red, 820, 110, () => OpenDialog("Reset everything?", "This erases levels, Gold, lives and achievements. It cannot be undone.", ("Cancel", UI.Grey, null), ("Erase", UI.Red, () => OpenDialog("Really erase?", "Last chance — all progress will be deleted.", ("Keep it", UI.Green, null), ("Erase now", UI.Red, ResetAllProgress)))), go);
