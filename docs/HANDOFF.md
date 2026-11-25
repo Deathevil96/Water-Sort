@@ -22,3 +22,9 @@ State as of 2026-11-24/25. Full notes live in `docs/claude-memory/` (copy of Cla
 ## Mac notes
 - Release signing keystore is in git-ignored `Signing/` - NOT in the repo; copy it over manually (needed for AAB builds).
 - Android Resolver may need to re-run (Assets > External Dependency Manager) after opening in Unity on Mac.
+
+## Signing keystore (encrypted)
+`docs/signing.tar.gz.enc` = AES-256 (openssl, pbkdf2) tarball of `Signing/` (keystore + password file).
+Passphrase is NOT in the repo (saved on the PC Desktop as palettepour-signing-passphrase.txt; keep it in a password manager).
+Restore on Mac, from repo root:
+`openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in docs/signing.tar.gz.enc | tar xz`
