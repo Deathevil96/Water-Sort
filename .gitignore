@@ -129,3 +129,7 @@ InitTestScene*.unity*
 # EDM generated local maven repo
 /Assets/GeneratedLocalRepo/
 /Assets/GeneratedLocalRepo.meta
+/Assets/Plugins/Android/FirebaseApp.androidlib/
+/Assets/Plugins/Android/FirebaseApp.androidlib.meta
+/Assets/_Recovery/
+/Assets/_Recovery.meta

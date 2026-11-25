@@ -18,11 +18,11 @@ MonoBehaviour:
     enableAutoResolution:
       value: 1
     autoResolveOnBuild:
-      value: 1
+      value: 0
     autoResolutionDisabledWarning:
-      value: 1
+      value: 0
     promptBeforeAutoResolution:
-      value: 1
+      value: 0
     patchAndroidManifest:
       value: 1
     useJetifier:

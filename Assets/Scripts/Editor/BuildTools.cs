@@ -57,6 +57,7 @@ namespace PaintSort.EditorTools
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output)) ?? OutputDir);
                 if (target == BuildTarget.Android) EditorUserBuildSettings.buildAppBundle = bundle;
                 if (target == BuildTarget.Android && !development) ApplyReleaseSigning();
+                if (target == BuildTarget.Android && development) PlayerSettings.Android.useCustomKeystore = false;   // dev builds: debug key (passwords are never saved in settings)
 
                 var options = new BuildPlayerOptions
                 {
