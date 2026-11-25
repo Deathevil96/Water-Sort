@@ -5,3 +5,4 @@
 - [Promo ad scenarios plan](promo-ad-scenarios-plan.md) — debug-menu clickbait ad videos; user supplies template from another project
 - [Signing key leak + new key](signing-key-in-repo-cleanup.md) — old key exposed; new key in Signing/new/, swap after Play upload key reset
 - [Mac handoff 2026-11-25](mac-handoff-2026-11-25.md) — all pushed to GitHub; handoff doc, keystore, memory copy locations
+- [Palette Pour is the benchmark](palette-pour-benchmark.md) — 1-day build = reference workflow; SkyQ drifted; shareable playbook repo link
